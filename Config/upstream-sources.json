@@ -1,0 +1,20 @@
+[
+  {
+    "id": "swiftui-support",
+    "repository": "https://github.com/LookInsideApp/LookInsideExtra-SwiftUserInterfaceSupport.git",
+    "moduleName": "LookInsideExtraSwiftUserInterfaceSupport",
+    "libraryName": "LookInsideExtraSwiftUserInterfaceSupport",
+    "buildCommand": "make package",
+    "artifactPath": "build/LookInsideExtraSwiftUserInterfaceSupport.xcframework.zip",
+    "releaseTagPrefix": "lookinsideextra-swiftui-support"
+  },
+  {
+    "id": "authenticator",
+    "repository": "https://github.com/LookInsideApp/LookInsideAuthenticator.git",
+    "moduleName": "LookInsideAuthenticator",
+    "libraryName": "LookInsideAuthenticator",
+    "buildCommand": "make package",
+    "artifactPath": "build/LookInsideAuthenticator.xcframework.zip",
+    "releaseTagPrefix": "lookinsideauthenticator"
+  }
+]
