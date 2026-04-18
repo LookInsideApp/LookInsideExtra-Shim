@@ -22,7 +22,7 @@ let package = Package(
         .binaryTarget(
             name: "LookInsideExtraSwiftUserInterfaceSupport",
             url: "https://github.com/LookInsideApp/LookInsideExtra-Shim/releases/download/storage/LookInsideExtraSwiftUserInterfaceSupport.xcframework.zip",
-            checksum: "ca5c7c829fee73cc9d2830af633c4f682549ac863cfe2b26c26344f85f73657e"
+            checksum: "aea09454cb09c707eaa75cc03d3feebe2a59a53956b0b72e078cecb3ab72e82b"
         ),
         .target(
             name: "LookInsideExtraSwiftUserInterfaceSupportPackageShim",
@@ -32,7 +32,7 @@ let package = Package(
         .binaryTarget(
             name: "LookInsideAuthenticator",
             url: "https://github.com/LookInsideApp/LookInsideExtra-Shim/releases/download/storage/LookInsideAuthenticator.xcframework.zip",
-            checksum: "2424820851eb56266a0ce16813690cba3965f5d1e8286ffc7204343d9c67abe6"
+            checksum: "da261dfc05bef35b51c70d037532c3fbbd7e213aedc06e6b262757396a163ef6"
         ),
         .target(
             name: "LookInsideAuthenticatorPackageShim",
