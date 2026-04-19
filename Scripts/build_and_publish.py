@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import shlex
 import subprocess
 import sys
@@ -17,6 +18,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 SOURCES_PATH = REPO_ROOT / "Config" / "upstream-sources.json"
 RENDER_SCRIPT = REPO_ROOT / "Scripts" / "render_package_manifest.py"
 STORAGE_TAG = "storage"
+CLEAR_CACHE_SCRIPT = REPO_ROOT / "Scripts" / "clear_spm_artifact_cache.sh"
 
 
 def run(cmd, *, cwd=None, env=None, shell=False, capture=False):
@@ -88,6 +90,34 @@ def render_package(state):
         os.unlink(state_path)
 
 
+def load_existing_mirrors(sources):
+    package_text = (REPO_ROOT / "Package.swift").read_text()
+    mirrors = {}
+    for source in sources:
+        module_name = re.escape(source["moduleName"])
+        match = re.search(
+            rf'\.binaryTarget\(\s*name:\s*"{module_name}",\s*url:\s*"([^"]+)",\s*checksum:\s*"([^"]+)"',
+            package_text,
+            re.MULTILINE | re.DOTALL,
+        )
+        if not match:
+            continue
+
+        download_url, sha = match.groups()
+        asset_name = Path(download_url.split("?", 1)[0]).name
+        mirrors[source["id"]] = {
+            "assetName": asset_name,
+            "checksum": sha,
+            "downloadURL": download_url,
+        }
+    return mirrors
+
+
+def validate_rendered_package():
+    run(["zsh", str(CLEAR_CACHE_SCRIPT)], cwd=REPO_ROOT)
+    run(["swift", "test"], cwd=REPO_ROOT)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source", action="append", dest="source_ids",
@@ -107,7 +137,7 @@ def main():
     with tempfile.TemporaryDirectory(prefix="lookinside-build-") as work:
         workdir = Path(work)
         archives = []
-        mirrors = {}
+        mirrors = load_existing_mirrors(json.loads(SOURCES_PATH.read_text()))
 
         for source in sources:
             print(f"==> {source['id']}", flush=True)
@@ -127,6 +157,7 @@ def main():
                 cwd=REPO_ROOT)
 
         render_package({"mirrors": mirrors})
+        validate_rendered_package()
 
 
 if __name__ == "__main__":
