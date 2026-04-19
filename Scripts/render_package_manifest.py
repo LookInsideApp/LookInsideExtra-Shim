@@ -170,8 +170,8 @@ import PackageDescription
 let package = Package(
     name: "LookInsideExtra-Shim",
     platforms: [
-        .iOS(.v15),
-        .macOS(.v15),
+        .iOS("15.0"),
+        .macOS("15.0"),
     ],
     products: [
 {products_body}
