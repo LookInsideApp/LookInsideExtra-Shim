@@ -114,7 +114,10 @@ def main():
             archive = build_archive(source, token=token, workdir=workdir)
             sha = checksum(archive)
             name = archive.name
-            url = f"https://github.com/{mirror_repo}/releases/download/{STORAGE_TAG}/{name}"
+            url = (
+                f"https://github.com/{mirror_repo}/releases/download/{STORAGE_TAG}/{name}"
+                f"?sha256={sha}"
+            )
             mirrors[source["id"]] = {"assetName": name, "checksum": sha, "downloadURL": url}
             archives.append(archive)
 
