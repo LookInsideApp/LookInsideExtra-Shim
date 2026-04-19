@@ -5,8 +5,8 @@ import PackageDescription
 let package = Package(
     name: "LookInsideExtra-Shim",
     platforms: [
-        .iOS(.v17),
-        .macOS(.v14),
+        .iOS("15.0"),
+        .macOS("15.0"),
     ],
     products: [
         .library(

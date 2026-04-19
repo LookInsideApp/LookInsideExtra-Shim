@@ -16,5 +16,14 @@
     "buildCommand": "make package",
     "artifactPath": "build/LookInsideAuthenticator.xcframework.zip",
     "releaseTagPrefix": "lookinsideauthenticator"
+  },
+  {
+    "id": "authenticator-ui",
+    "repository": "https://github.com/LookInsideApp/LookInsideAuthenticator.git",
+    "moduleName": "LookInsideAuthenticatorUI",
+    "libraryName": "LookInsideAuthenticatorUI",
+    "buildCommand": "make package PRODUCT_NAME=LookInsideAuthenticatorUI SCHEME=LookInsideAuthenticatorUI",
+    "artifactPath": "build/LookInsideAuthenticatorUI.xcframework.zip",
+    "releaseTagPrefix": "lookinsideauthenticatorui"
   }
 ]
