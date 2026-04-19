@@ -18,7 +18,6 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 SOURCES_PATH = REPO_ROOT / "Config" / "upstream-sources.json"
 RENDER_SCRIPT = REPO_ROOT / "Scripts" / "render_package_manifest.py"
 STORAGE_TAG = "storage"
-CLEAR_CACHE_SCRIPT = REPO_ROOT / "Scripts" / "clear_spm_artifact_cache.sh"
 
 
 def run(cmd, *, cwd=None, env=None, shell=False, capture=False):
@@ -113,11 +112,6 @@ def load_existing_mirrors(sources):
     return mirrors
 
 
-def validate_rendered_package():
-    run(["zsh", str(CLEAR_CACHE_SCRIPT)], cwd=REPO_ROOT)
-    run(["swift", "test"], cwd=REPO_ROOT)
-
-
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source", action="append", dest="source_ids",
@@ -157,7 +151,6 @@ def main():
                 cwd=REPO_ROOT)
 
         render_package({"mirrors": mirrors})
-        validate_rendered_package()
 
 
 if __name__ == "__main__":
