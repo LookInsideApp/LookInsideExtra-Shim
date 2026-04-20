@@ -25,8 +25,8 @@ let package = Package(
     targets: [
         .binaryTarget(
             name: "LookInsideExtraSwiftUserInterfaceSupport",
-            url: "https://github.com/LookInsideApp/LookInsideExtra-Shim/releases/download/storage/LookInsideExtraSwiftUserInterfaceSupport.xcframework.zip?sha256=558205222e163ad8af462c8b5ffc82bda15d7557a833143296cdf409c90a1991",
-            checksum: "558205222e163ad8af462c8b5ffc82bda15d7557a833143296cdf409c90a1991"
+            url: "https://github.com/LookInsideApp/LookInsideExtra-Shim/releases/download/storage/LookInsideExtraSwiftUserInterfaceSupport.xcframework.zip?sha256=458f5fa2ca9cf98589d5f1e9f75ec2b044f057fa07e7741553141dd5f4da7a65",
+            checksum: "458f5fa2ca9cf98589d5f1e9f75ec2b044f057fa07e7741553141dd5f4da7a65"
         ),
         .target(
             name: "LookInsideExtraSwiftUserInterfaceSupportPackageShim",
@@ -35,8 +35,8 @@ let package = Package(
         ),
         .binaryTarget(
             name: "LookInsideAuthenticator",
-            url: "https://github.com/LookInsideApp/LookInsideExtra-Shim/releases/download/storage/LookInsideAuthenticator.xcframework.zip?sha256=f408fab7e8c808b79085b54e716fc2e077b9574d80811d84174c03ce23e8c056",
-            checksum: "f408fab7e8c808b79085b54e716fc2e077b9574d80811d84174c03ce23e8c056"
+            url: "https://github.com/LookInsideApp/LookInsideExtra-Shim/releases/download/storage/LookInsideAuthenticator.xcframework.zip?sha256=1b636a026131ad143a4f19f28367af951c2fe2a44bc1436f7cf388d542aeb559",
+            checksum: "1b636a026131ad143a4f19f28367af951c2fe2a44bc1436f7cf388d542aeb559"
         ),
         .target(
             name: "LookInsideAuthenticatorPackageShim",
@@ -45,8 +45,8 @@ let package = Package(
         ),
         .binaryTarget(
             name: "LookInsideAuthenticatorUI",
-            url: "https://github.com/LookInsideApp/LookInsideExtra-Shim/releases/download/storage/LookInsideAuthenticatorUI.xcframework.zip?sha256=83d4f0c5fc043b71e2e78b9d31639046f50ab088b3c9bca2efc385b88f5e5df3",
-            checksum: "83d4f0c5fc043b71e2e78b9d31639046f50ab088b3c9bca2efc385b88f5e5df3"
+            url: "https://github.com/LookInsideApp/LookInsideExtra-Shim/releases/download/storage/LookInsideAuthenticatorUI.xcframework.zip?sha256=340a7ec3cc65dcc16a778db4865e88e4e98c5d3490272ee1b8effd74b5992710",
+            checksum: "340a7ec3cc65dcc16a778db4865e88e4e98c5d3490272ee1b8effd74b5992710"
         ),
         .target(
             name: "LookInsideAuthenticatorUIPackageShim",
