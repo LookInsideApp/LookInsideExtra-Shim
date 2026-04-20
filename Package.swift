@@ -12,14 +12,6 @@ let package = Package(
         .library(
             name: "LookInsideExtraSwiftUserInterfaceSupport",
             targets: ["LookInsideExtraSwiftUserInterfaceSupport", "LookInsideExtraSwiftUserInterfaceSupportPackageShim"]
-        ),
-        .library(
-            name: "LookInsideAuthenticator",
-            targets: ["LookInsideAuthenticator", "LookInsideAuthenticatorPackageShim"]
-        ),
-        .library(
-            name: "LookInsideAuthenticatorUI",
-            targets: ["LookInsideAuthenticatorUI", "LookInsideAuthenticatorUIPackageShim"]
         )
     ],
     targets: [
@@ -33,29 +25,9 @@ let package = Package(
             dependencies: ["LookInsideExtraSwiftUserInterfaceSupport"],
             path: "Sources/LookInsideExtraSwiftUserInterfaceSupportPackageShim"
         ),
-        .binaryTarget(
-            name: "LookInsideAuthenticator",
-            url: "https://github.com/LookInsideApp/LookInsideExtra-Shim/releases/download/storage/LookInsideAuthenticator.xcframework.zip?sha256=1b636a026131ad143a4f19f28367af951c2fe2a44bc1436f7cf388d542aeb559",
-            checksum: "1b636a026131ad143a4f19f28367af951c2fe2a44bc1436f7cf388d542aeb559"
-        ),
-        .target(
-            name: "LookInsideAuthenticatorPackageShim",
-            dependencies: ["LookInsideAuthenticator"],
-            path: "Sources/LookInsideAuthenticatorPackageShim"
-        ),
-        .binaryTarget(
-            name: "LookInsideAuthenticatorUI",
-            url: "https://github.com/LookInsideApp/LookInsideExtra-Shim/releases/download/storage/LookInsideAuthenticatorUI.xcframework.zip?sha256=340a7ec3cc65dcc16a778db4865e88e4e98c5d3490272ee1b8effd74b5992710",
-            checksum: "340a7ec3cc65dcc16a778db4865e88e4e98c5d3490272ee1b8effd74b5992710"
-        ),
-        .target(
-            name: "LookInsideAuthenticatorUIPackageShim",
-            dependencies: ["LookInsideAuthenticatorUI"],
-            path: "Sources/LookInsideAuthenticatorUIPackageShim"
-        ),
         .testTarget(
             name: "LookInsideExtraShimTests",
-            dependencies: ["LookInsideExtraSwiftUserInterfaceSupportPackageShim", "LookInsideAuthenticatorPackageShim", "LookInsideAuthenticatorUIPackageShim"],
+            dependencies: ["LookInsideExtraSwiftUserInterfaceSupportPackageShim"],
             path: "Tests/LookInsideExtraShimTests"
         )
     ]

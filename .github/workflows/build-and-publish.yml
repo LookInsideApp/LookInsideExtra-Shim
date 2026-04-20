@@ -4,11 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       source_id:
-        description: Optional source id to build (e.g. "authenticator")
+        description: Optional source id to build (e.g. "swiftui-support")
         required: false
         type: string
-  schedule:
-    - cron: "17 3 * * *"
 
 concurrency:
   group: build-and-publish-main

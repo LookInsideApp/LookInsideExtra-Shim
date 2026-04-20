@@ -1,7 +1,5 @@
 import XCTest
 import LookInsideExtraSwiftUserInterfaceSupport
-import LookInsideAuthenticator
-import LookInsideAuthenticatorUI
 
 final class ImportSmokeTests: XCTestCase {
     func testModulesLink() {
