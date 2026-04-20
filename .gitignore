@@ -1,5 +1,6 @@
 .DS_Store
 /.build
+/build/
 /Packages
 xcuserdata/
 DerivedData/
@@ -9,3 +10,7 @@ DerivedData/
 LocalArtifacts/
 __pycache__/
 *.pyc
+*.keychain-db
+*.p8
+.env
+.env.local

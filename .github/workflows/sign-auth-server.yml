@@ -1,22 +1,13 @@
-name: Sign Auth Server
+name: Build and Publish Auth Server
 
 on:
   workflow_dispatch:
     inputs:
-      source_repo:
-        description: Upstream repo that publishes the unsigned auth server app zip.
+      source_ref:
+        description: Git ref (branch, tag, or SHA) of LookInsideAuthenticator to build.
         required: true
         type: string
-        default: LookInsideApp/LookInsideAuthenticator
-      source_tag:
-        description: Upstream release tag to pull the unsigned app zip from.
-        required: true
-        type: string
-      source_asset:
-        description: Unsigned asset file name on the upstream release.
-        required: true
-        type: string
-        default: lookinside-auth-server.app.zip
+        default: main
       output_asset:
         description: Signed asset file name to upload to the storage release.
         required: true
@@ -27,61 +18,69 @@ permissions:
   contents: write
 
 concurrency:
-  group: sign-auth-server-main
+  group: build-auth-server-main
   cancel-in-progress: false
 
 jobs:
-  sign:
+  build_and_sign:
     runs-on: macos-latest
     timeout-minutes: 60
     env:
       GH_TOKEN: ${{ secrets.UPSTREAM_MIRROR_TOKEN }}
       GITHUB_TOKEN: ${{ secrets.UPSTREAM_MIRROR_TOKEN }}
-      UPSTREAM_MIRROR_TOKEN: ${{ secrets.UPSTREAM_MIRROR_TOKEN }}
 
     steps:
-      - name: Checkout repository
+      - name: Checkout shim repository
         uses: actions/checkout@v4
         with:
           ref: main
+          path: shim
+          token: ${{ secrets.UPSTREAM_MIRROR_TOKEN }}
+
+      - name: Checkout authenticator source
+        uses: actions/checkout@v4
+        with:
+          repository: LookInsideApp/LookInsideAuthenticator
+          ref: ${{ inputs.source_ref }}
+          path: authenticator
           token: ${{ secrets.UPSTREAM_MIRROR_TOKEN }}
 
       - name: Select Xcode
         run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
 
-      - name: Download Unsigned App
-        id: download
-        run: |
-          set -euo pipefail
-          mkdir -p build/unsigned build/extracted
-          asset_path="build/unsigned/${{ inputs.source_asset }}"
-          gh release download "${{ inputs.source_tag }}" \
-            --repo "${{ inputs.source_repo }}" \
-            --pattern "${{ inputs.source_asset }}" \
-            --output "$asset_path" \
-            --clobber
-          echo "asset_path=$asset_path" >> "$GITHUB_OUTPUT"
+      - name: Install mise
+        run: brew install mise
 
-      - name: Extract App Bundle
+      - name: Install tuist via mise
+        working-directory: authenticator
+        run: |
+          mise trust
+          mise install
+
+      - name: Build unsigned auth server app
+        working-directory: authenticator
+        run: make app
+
+      - name: Extract app bundle
         id: extract
         run: |
           set -euo pipefail
-          cd build/extracted
-          ditto -x -k "../../${{ steps.download.outputs.asset_path }}" .
-          app_path="$(find . -maxdepth 2 -type d -name "*.app" | head -n 1)"
-          [[ -n "$app_path" ]] || { echo "No .app bundle found in upstream asset." >&2; exit 1; }
+          mkdir -p build/extracted
+          ditto -x -k authenticator/lookinside-auth-server.app.zip build/extracted
+          app_path="$(find build/extracted -maxdepth 2 -type d -name "*.app" | head -n 1)"
+          [[ -n "$app_path" ]] || { echo "No .app bundle found after extraction." >&2; exit 1; }
           absolute_app_path="$(cd "$(dirname "$app_path")" && pwd)/$(basename "$app_path")"
           echo "app_path=$absolute_app_path" >> "$GITHUB_OUTPUT"
           echo "Extracted app: $absolute_app_path"
 
-      - name: Setup Keychain and Signing Env
+      - name: Setup keychain and signing env
         id: setup_keychain
         env:
           KEYCHAIN_CONTENT_GZIP: ${{ secrets.KEYCHAIN_CONTENT_GZIP }}
           KEYCHAIN_SECRET: ${{ secrets.KEYCHAIN_SECRET }}
-        run: bash Scripts/setup-ci-keychain.sh --output-file "$GITHUB_OUTPUT"
+        run: bash shim/Scripts/setup-ci-keychain.sh --output-file "$GITHUB_OUTPUT"
 
-      - name: Sign and Notarize App
+      - name: Sign and notarize app
         env:
           SIGNING_IDENTITY: ${{ steps.setup_keychain.outputs.signing_identity }}
           DEVELOPMENT_TEAM: ${{ steps.setup_keychain.outputs.development_team }}
@@ -89,11 +88,12 @@ jobs:
           KEYCHAIN_PROFILE: ${{ steps.setup_keychain.outputs.keychain_profile }}
           KEYCHAIN_SECRET: ${{ secrets.KEYCHAIN_SECRET }}
         run: |
-          bash Scripts/sign-and-notarize-app.sh \
+          bash shim/Scripts/sign-and-notarize-app.sh \
             --app "${{ steps.extract.outputs.app_path }}" \
             --output "build/signed/${{ inputs.output_asset }}"
 
-      - name: Ensure Storage Release Exists
+      - name: Ensure storage release exists
+        working-directory: shim
         run: |
           set -euo pipefail
           if ! gh release view storage --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
@@ -103,13 +103,13 @@ jobs:
               --notes "Signed binary artifacts. Always the latest build."
           fi
 
-      - name: Upload Signed App
+      - name: Upload signed app
         run: |
           gh release upload storage "build/signed/${{ inputs.output_asset }}" \
             --repo "$GITHUB_REPOSITORY" \
             --clobber
 
-      - name: Upload Checksum
+      - name: Upload checksum
         run: |
           set -euo pipefail
           cd build/signed

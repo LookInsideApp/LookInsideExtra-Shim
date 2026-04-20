@@ -35,18 +35,20 @@ The authenticator and authenticator-ui xcframeworks are retired. The auth server
   5. Publish the next patch semver tag/release for Swift Package consumers after the `main` update is available.
 - The workflow must **not** run `swift build`, `swift test`, or any other verification against this repo's package in CI.
 
-## Sign Auth Server workflow
+## Build and Publish Auth Server workflow
 
-- Workflow file: `.github/workflows/sign-auth-server.yml`, named **Sign Auth Server**.
-- Trigger: `workflow_dispatch`. Inputs: upstream repo, upstream tag, upstream asset name, signed output asset name. Defaults target `LookInsideApp/LookInsideAuthenticator` and `lookinside-auth-server.app.zip`.
+- Workflow file: `.github/workflows/sign-auth-server.yml`, named **Build and Publish Auth Server**.
+- Trigger: `workflow_dispatch`. Inputs: `source_ref` (git ref of `LookInsideApp/LookInsideAuthenticator`, default `main`), `output_asset` (default `lookinside-auth-server.app.zip`).
+- The authenticator repo contains source only. It has no workflows. All packaging, signing, notarization, and publishing for the auth server live here.
 - Steps:
-  1. Download the unsigned `.app.zip` from the upstream release using `gh`.
-  2. `ditto -x -k` to unpack the `.app` bundle.
-  3. Restore the signing keychain with `Scripts/setup-ci-keychain.sh`.
-  4. Run `Scripts/sign-and-notarize-app.sh` to codesign the bundle and nested executables, notarize with notarytool, staple, and re-zip.
-  5. Ensure the `storage` release exists, upload the signed zip plus a `.sha256` checksum with `--clobber`.
-- The workflow must **not** build source from the upstream repo. It only re-signs what was published.
-- The workflow must **not** run `swift build`, `swift test`, or resolve SwiftPM dependencies. GitHub runners have slow downloads, so all CI jobs in this repo must stay clear of SwiftPM fetch/resolve work.
+  1. Check out the shim repo and the authenticator source (private, cloned with `UPSTREAM_MIRROR_TOKEN`).
+  2. Install `mise` via Homebrew, then `mise install` inside the authenticator checkout to get the tuist version pinned in `mise.toml`.
+  3. Run `make app` in the authenticator checkout to produce `lookinside-auth-server.app.zip` at the authenticator repo root.
+  4. `ditto -x -k` to unpack the `.app` bundle.
+  5. Restore the signing keychain with `Scripts/setup-ci-keychain.sh`.
+  6. Run `Scripts/sign-and-notarize-app.sh` to codesign the bundle and nested executables, notarize with notarytool, staple, and re-zip.
+  7. Ensure the `storage` release exists, upload the signed zip plus a `.sha256` checksum with `--clobber`.
+- The workflow must **not** run `swift build`, `swift test`, or resolve SwiftPM dependencies in the shim package. GitHub runners have slow downloads, so CI in this repo must stay clear of SwiftPM fetch/resolve work against `Package.swift`. Running tuist and xcodebuild inside the authenticator checkout is expected.
 
 ## Required CI secrets
 
