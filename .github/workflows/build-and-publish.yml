@@ -10,6 +10,10 @@ on:
   schedule:
     - cron: "17 3 * * *"
 
+concurrency:
+  group: build-and-publish-main
+  cancel-in-progress: false
+
 permissions:
   contents: write
 
@@ -26,7 +30,9 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
         with:
+          ref: main
           token: ${{ secrets.UPSTREAM_MIRROR_TOKEN }}
+          fetch-depth: 0
 
       - name: Select Xcode
         run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
@@ -42,14 +48,45 @@ jobs:
             ./Scripts/build_and_publish.py
           fi
 
+      - name: Determine next release version
+        id: version
+        run: |
+          git fetch --force --tags origin
+          latest_tag="$(git tag --list --sort=-version:refname | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1)"
+          next_tag="$(python3 - "$latest_tag" <<'PY'
+import sys
+
+latest = sys.argv[1]
+if not latest:
+    print("0.1.0")
+    raise SystemExit
+
+major, minor, patch = (int(part) for part in latest.split("."))
+print(f"{major}.{minor}.{patch + 1}")
+PY
+          )"
+          echo "latest_tag=$latest_tag" >> "$GITHUB_OUTPUT"
+          echo "next_tag=$next_tag" >> "$GITHUB_OUTPUT"
+          echo "Next release tag: $next_tag"
+
       - name: Commit updated manifest
+        id: commit
         run: |
           if git diff --quiet -- Package.swift Sources Tests; then
             echo "No manifest changes to commit."
+            echo "created_commit=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add Package.swift Sources Tests
-          git commit -m "Build and publish"
-          git push
+          git commit -m "Build and publish ${{ steps.version.outputs.next_tag }}"
+          git push origin HEAD:main
+          echo "created_commit=true" >> "$GITHUB_OUTPUT"
+
+      - name: Publish version release
+        run: |
+          gh release create "${{ steps.version.outputs.next_tag }}" \
+            --target "$(git rev-parse HEAD)" \
+            --title "${{ steps.version.outputs.next_tag }}" \
+            --notes "Swift Package release ${{ steps.version.outputs.next_tag }}. Binary xcframework archives live on the storage release."

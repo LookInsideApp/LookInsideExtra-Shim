@@ -2,9 +2,8 @@
 
 ## Release layout
 
-- Exactly two tags/releases exist on this repo and nothing else:
-  - `storage` — binary storage release. Every workflow run re-uploads xcframework archives here with `--clobber`.
-  - `0.1.0` — the Swift Package release tag consumers pin to.
+- `storage` is the binary storage release. Every workflow run re-uploads xcframework archives here with `--clobber`.
+- Swift Package consumers pin semver tags on this repo. Each successful publish run reads the latest `X.Y.Z` tag, increments patch by 1, and publishes that new version.
 - Do not create per-version tags or releases for upstream versions.
 - Only GitHub Actions is allowed to write to the `storage` release. Never upload to `storage` from a local machine.
 
@@ -12,7 +11,7 @@
 
 - `main` is kept as a single root commit whenever possible. Use squash + force push when consolidating.
 - After the initial consolidation, regular workflow commits push normally (no force).
-- The `0.1.0` tag may be force-moved when the root commit is rewritten; otherwise leave it alone.
+- Semver release tags move forward from the latest published `X.Y.Z` tag.
 
 ## Build and Publish workflow
 
@@ -24,6 +23,7 @@
   2. Build the xcframework via `make package` piped through `xcbeautify`.
   3. Zip the xcframework if needed and upload it to the `storage` release with `--clobber`.
   4. Regenerate `Package.swift` with the fresh checksums and commit the change to `main`.
+  5. Publish the next patch semver tag/release for Swift Package consumers after the `main` update is available.
 - The workflow must **not** run `swift build`, `swift test`, or any other verification against this repo's package in CI.
 
 ## Local development
