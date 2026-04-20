@@ -54,16 +54,16 @@ jobs:
           git fetch --force --tags origin
           latest_tag="$(git tag --list --sort=-version:refname | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1)"
           next_tag="$(python3 - "$latest_tag" <<'PY'
-import sys
+          import sys
 
-latest = sys.argv[1]
-if not latest:
-    print("0.1.0")
-    raise SystemExit
+          latest = sys.argv[1]
+          if not latest:
+              print("0.1.0")
+              raise SystemExit
 
-major, minor, patch = (int(part) for part in latest.split("."))
-print(f"{major}.{minor}.{patch + 1}")
-PY
+          major, minor, patch = (int(part) for part in latest.split("."))
+          print(f"{major}.{minor}.{patch + 1}")
+          PY
           )"
           echo "latest_tag=$latest_tag" >> "$GITHUB_OUTPUT"
           echo "next_tag=$next_tag" >> "$GITHUB_OUTPUT"
