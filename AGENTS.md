@@ -43,11 +43,12 @@ The authenticator and authenticator-ui xcframeworks are retired. The auth server
 - Steps:
   1. Check out the shim repo and the authenticator source (private, cloned with `UPSTREAM_MIRROR_TOKEN`).
   2. Install `mise` via Homebrew, then `mise install` inside the authenticator checkout to get the tuist version pinned in `mise.toml`.
-  3. Run `make app` in the authenticator checkout to produce `lookinside-auth-server.app.zip` at the authenticator repo root.
-  4. `ditto -x -k` to unpack the `.app` bundle.
-  5. Restore the signing keychain with `Scripts/setup-ci-keychain.sh`.
-  6. Run `Scripts/sign-and-notarize-app.sh` to codesign the bundle and nested executables, notarize with notarytool, staple, and re-zip.
-  7. Ensure the `storage` release exists, upload the signed zip plus a `.sha256` checksum with `--clobber`.
+  3. Compute a UTC build timestamp `YYYY.MMDD.HHMMSS` and export it as `MARKETING_VERSION`. This flows into the helper's `CFBundleShortVersionString` / `CFBundleVersion` and is advertised on `health.ping` as `server_version`.
+  4. Run `make app` with that `MARKETING_VERSION` in env to produce `lookinside-auth-server.app.zip` at the authenticator repo root.
+  5. `ditto -x -k` to unpack the `.app` bundle.
+  6. Restore the signing keychain with `Scripts/setup-ci-keychain.sh`.
+  7. Run `Scripts/sign-and-notarize-app.sh` to codesign the bundle and nested executables, notarize with notarytool, staple, and re-zip.
+  8. Ensure the `storage` release exists, upload the signed zip, its `.sha256` checksum, and a `.version` plain-text asset (containing just the timestamp) with `--clobber`. The `.version` file is the source of truth for LookInside's stale-cache detection — host fetches it and compares against the installed helper's `CFBundleShortVersionString`.
 - The workflow must **not** run `swift build`, `swift test`, or resolve SwiftPM dependencies in the shim package. GitHub runners have slow downloads, so CI in this repo must stay clear of SwiftPM fetch/resolve work against `Package.swift`. Running tuist and xcodebuild inside the authenticator checkout is expected.
 
 ## Required CI secrets

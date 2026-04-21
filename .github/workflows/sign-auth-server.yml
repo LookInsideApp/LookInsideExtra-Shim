@@ -57,8 +57,18 @@ jobs:
           mise trust
           mise install
 
+      - name: Compute build timestamp
+        id: stamp
+        run: |
+          set -euo pipefail
+          stamp="$(date -u +%Y.%m%d.%H%M%S)"
+          echo "marketing_version=$stamp" >> "$GITHUB_OUTPUT"
+          echo "Build timestamp: $stamp"
+
       - name: Build unsigned auth server app
         working-directory: authenticator
+        env:
+          MARKETING_VERSION: ${{ steps.stamp.outputs.marketing_version }}
         run: make app
 
       - name: Extract app bundle
@@ -115,5 +125,17 @@ jobs:
           cd build/signed
           shasum -a 256 "${{ inputs.output_asset }}" > "${{ inputs.output_asset }}.sha256"
           gh release upload storage "${{ inputs.output_asset }}.sha256" \
+            --repo "$GITHUB_REPOSITORY" \
+            --clobber
+
+      - name: Upload version marker
+        env:
+          MARKETING_VERSION: ${{ steps.stamp.outputs.marketing_version }}
+        run: |
+          set -euo pipefail
+          cd build/signed
+          version_asset="${{ inputs.output_asset }}.version"
+          printf '%s\n' "$MARKETING_VERSION" > "$version_asset"
+          gh release upload storage "$version_asset" \
             --repo "$GITHUB_REPOSITORY" \
             --clobber
