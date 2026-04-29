@@ -27,12 +27,31 @@ def shim_target_name(module_name: str) -> str:
     return f"{module_name}PackageShim"
 
 
-def render_shim_target(module_name: str, shim_name: str) -> str:
+def render_shim_target(
+    module_name: str,
+    shim_name: str,
+    extra_product_dependencies: list[dict],
+) -> str:
+    deps = [quoted(module_name)]
+    for product in extra_product_dependencies:
+        deps.append(
+            f'.product(name: {quoted(product["name"])}, package: {quoted(product["package"])})'
+        )
+    deps_body = ", ".join(deps)
     return f"""        .target(
             name: {quoted(shim_name)},
-            dependencies: [{quoted(module_name)}],
+            dependencies: [{deps_body}],
             path: {quoted(f"Sources/{shim_name}")}
         )"""
+
+
+def render_package_dependency(spec: dict) -> str:
+    url = quoted(spec["url"])
+    if "branch" in spec:
+        return f"        .package(url: {url}, branch: {quoted(spec['branch'])})"
+    if "version" in spec:
+        return f'        .package(url: {url}, from: {quoted(spec["version"])})'
+    raise SystemExit(f"swiftPackageDependency missing branch/version: {spec}")
 
 
 def parse_args() -> argparse.Namespace:
@@ -112,6 +131,8 @@ def main() -> None:
     targets: list[str] = []
     active_shims: dict[str, str] = {}
     active_modules: list[str] = []
+    package_dependencies: list[str] = []
+    seen_package_urls: set[str] = set()
     for source in sources:
         mirror = mirrors.get(source["id"], {})
         checksum = mirror.get("checksum")
@@ -126,6 +147,17 @@ def main() -> None:
         shim_name = shim_target_name(module_name)
         active_shims[shim_name] = module_name
         active_modules.append(module_name)
+
+        spm_deps = source.get("swiftPackageDependencies", [])
+        extra_products: list[dict] = []
+        for spec in spm_deps:
+            if spec["url"] not in seen_package_urls:
+                package_dependencies.append(render_package_dependency(spec))
+                seen_package_urls.add(spec["url"])
+            for product_name in spec.get("products", []):
+                extra_products.append(
+                    {"name": product_name, "package": spec["package"]}
+                )
 
         products.append(
             f"""        .library(
@@ -148,7 +180,7 @@ def main() -> None:
             checksum: {quoted(checksum)}
         )"""
             )
-        targets.append(render_shim_target(module_name, shim_name))
+        targets.append(render_shim_target(module_name, shim_name, extra_products))
 
     if active_modules:
         test_deps = ", ".join(quoted(shim_target_name(m)) for m in active_modules)
@@ -162,6 +194,13 @@ def main() -> None:
 
     products_body = ",\n".join(products)
     targets_body = ",\n".join(targets)
+    dependencies_section = ""
+    if package_dependencies:
+        deps_body = ",\n".join(package_dependencies)
+        dependencies_section = f"""    dependencies: [
+{deps_body},
+    ],
+"""
 
     package_text = f"""// swift-tools-version: 5.9
 
@@ -176,7 +215,7 @@ let package = Package(
     products: [
 {products_body}
     ],
-    targets: [
+{dependencies_section}    targets: [
 {targets_body}
     ]
 )

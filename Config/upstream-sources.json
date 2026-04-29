@@ -6,6 +6,14 @@
     "libraryName": "LookInsideExtraSwiftUserInterfaceSupport",
     "buildCommand": "make package",
     "artifactPath": "build/LookInsideExtraSwiftUserInterfaceSupport.xcframework.zip",
-    "releaseTagPrefix": "lookinsideextra-swiftui-support"
+    "releaseTagPrefix": "lookinsideextra-swiftui-support",
+    "swiftPackageDependencies": [
+      {
+        "package": "LookInsideServer",
+        "url": "https://github.com/LookInsideApp/LookInsideServer.git",
+        "branch": "main",
+        "products": ["LookinServer"]
+      }
+    ]
   }
 ]

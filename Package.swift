@@ -14,6 +14,9 @@ let package = Package(
             targets: ["LookInsideExtraSwiftUserInterfaceSupport", "LookInsideExtraSwiftUserInterfaceSupportPackageShim"]
         )
     ],
+    dependencies: [
+        .package(url: "https://github.com/LookInsideApp/LookInsideServer.git", branch: "main"),
+    ],
     targets: [
         .binaryTarget(
             name: "LookInsideExtraSwiftUserInterfaceSupport",
@@ -22,7 +25,7 @@ let package = Package(
         ),
         .target(
             name: "LookInsideExtraSwiftUserInterfaceSupportPackageShim",
-            dependencies: ["LookInsideExtraSwiftUserInterfaceSupport"],
+            dependencies: ["LookInsideExtraSwiftUserInterfaceSupport", .product(name: "LookinServer", package: "LookInsideServer")],
             path: "Sources/LookInsideExtraSwiftUserInterfaceSupportPackageShim"
         ),
         .testTarget(
