@@ -1,6 +1,5 @@
 import XCTest
 import LookInsideServerStatic
-import LookInsideServerDynamic
 
 final class ImportSmokeTests: XCTestCase {
     func testModulesLink() {

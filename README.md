@@ -42,7 +42,7 @@ Currently mirrored upstreams (see [`Config/upstream-sources.json`](Config/upstre
 
 ## Release layout
 
-- The `storage` GitHub Release on this repo is the binary storage location. Every CI run re-uploads artifacts here with `--clobber`.
+- The `storage` GitHub Release on this repo is the binary storage location. Server artifacts are uploaded with checksum-bearing file names so older semver tags keep resolving to the exact bytes they pinned.
 - Swift Package consumers pin semver tags (`X.Y.Z`) on this repo. Each successful **Build and Publish** run reads the latest `X.Y.Z`, increments patch by 1, and publishes the new tag.
 - Only GitHub Actions writes to `storage`. Local laptops never upload there.
 
@@ -59,6 +59,8 @@ Currently mirrored upstreams (see [`Config/upstream-sources.json`](Config/upstre
 3. Uploads the resulting xcframework zip to `storage` with `--clobber`.
 4. Regenerates `Package.swift` with fresh checksums and commits to `main`.
 5. Publishes the next patch semver tag for SwiftPM consumers.
+
+Run `swift test` against the rendered manifest before publishing or immediately after the release tag is cut to verify binary imports.
 
 ### Build and Publish Auth Server
 

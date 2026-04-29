@@ -7,6 +7,7 @@ import argparse
 import json
 import os
 import re
+import shutil
 import shlex
 import subprocess
 import sys
@@ -74,6 +75,17 @@ def build_archive(source, *, token, workdir):
 def checksum(path):
     out = run(["shasum", "-a", "256", str(path)], capture=True)
     return out.split()[0]
+
+
+def checksummed_asset_name(asset_name, sha):
+    short_sha = sha[:12]
+    xcframework_suffix = ".xcframework.zip"
+    if asset_name.endswith(xcframework_suffix):
+        stem = asset_name[:-len(xcframework_suffix)]
+        return f"{stem}-{short_sha}{xcframework_suffix}"
+
+    stem, suffix = os.path.splitext(asset_name)
+    return f"{stem}-{short_sha}{suffix}"
 
 
 def ensure_storage_release():
@@ -148,13 +160,18 @@ def main():
             print(f"==> {source['id']}", flush=True)
             archive = build_archive(source, token=token, workdir=workdir)
             sha = checksum(archive)
-            name = archive.name
+            configured_name = source.get("assetName", archive.name)
+            name = checksummed_asset_name(configured_name, sha)
+            upload_archive = archive
+            if archive.name != name:
+                upload_archive = workdir / name
+                shutil.copy2(archive, upload_archive)
             url = (
                 f"https://github.com/{mirror_repo}/releases/download/{STORAGE_TAG}/{name}"
                 f"?sha256={sha}"
             )
             mirrors[source["id"]] = {"assetName": name, "checksum": sha, "downloadURL": url}
-            archives.append(archive)
+            archives.append(upload_archive)
 
         ensure_storage_release()
         for archive in archives:

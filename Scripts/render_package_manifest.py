@@ -4,15 +4,15 @@ from __future__ import annotations
 
 import argparse
 import json
+import shutil
 from pathlib import Path
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SOURCES_PATH = REPO_ROOT / "Config" / "upstream-sources.json"
 PACKAGE_PATH = REPO_ROOT / "Package.swift"
-SHIMS_ROOT = REPO_ROOT / "Sources"
+LEGACY_SHIMS_ROOT = REPO_ROOT / "Sources"
 TESTS_ROOT = REPO_ROOT / "Tests"
-TEST_TARGET_NAME = "LookInsideReleaseTests"
 
 
 def load_json(path: Path) -> object:
@@ -23,26 +23,10 @@ def quoted(value: str) -> str:
     return json.dumps(value)
 
 
-def shim_target_name(module_name: str) -> str:
-    return f"{module_name}PackageShim"
-
-
-def render_shim_target(
-    module_name: str,
-    shim_name: str,
-    extra_product_dependencies: list[dict],
-) -> str:
-    deps = [quoted(module_name)]
-    for product in extra_product_dependencies:
-        deps.append(
-            f'.product(name: {quoted(product["name"])}, package: {quoted(product["package"])})'
-        )
-    deps_body = ", ".join(deps)
-    return f"""        .target(
-            name: {quoted(shim_name)},
-            dependencies: [{deps_body}],
-            path: {quoted(f"Sources/{shim_name}")}
-        )"""
+def test_target_name(module_name: str) -> str:
+    prefix = "LookInsideServer"
+    suffix = module_name.removeprefix(prefix)
+    return f"LookInsideRelease{suffix or module_name}Tests"
 
 
 def render_package_dependency(spec: dict) -> str:
@@ -88,28 +72,33 @@ def parse_local_overrides(raw_overrides: list[str]) -> dict[str, str]:
     return overrides
 
 
-def write_shim_sources(active_shims: dict[str, str]) -> None:
-    SHIMS_ROOT.mkdir(exist_ok=True)
+def remove_legacy_shims() -> None:
+    if not LEGACY_SHIMS_ROOT.exists():
+        return
 
-    for child in SHIMS_ROOT.iterdir():
-        if child.is_dir() and child.name.endswith("PackageShim") and child.name not in active_shims:
-            for nested in child.iterdir():
-                if nested.is_file():
-                    nested.unlink()
-            child.rmdir()
-
-    for shim_name, module_name in active_shims.items():
-        shim_dir = SHIMS_ROOT / shim_name
-        shim_dir.mkdir(parents=True, exist_ok=True)
-        (shim_dir / "Exports.swift").write_text(f"@_exported import {module_name}\n")
+    for child in LEGACY_SHIMS_ROOT.iterdir():
+        if child.is_dir() and child.name.endswith("PackageShim"):
+            shutil.rmtree(child)
 
 
 def write_test_sources(module_names: list[str]) -> None:
-    test_dir = TESTS_ROOT / TEST_TARGET_NAME
-    test_dir.mkdir(parents=True, exist_ok=True)
-    imports = "\n".join(f"import {module}" for module in module_names)
-    body = f"""import XCTest
-{imports}
+    active_tests = {test_target_name(module): module for module in module_names}
+    TESTS_ROOT.mkdir(exist_ok=True)
+
+    for child in TESTS_ROOT.iterdir():
+        if (
+            child.is_dir()
+            and child.name.startswith("LookInsideRelease")
+            and child.name.endswith("Tests")
+            and child.name not in active_tests
+        ):
+            shutil.rmtree(child)
+
+    for test_name, module_name in active_tests.items():
+        test_dir = TESTS_ROOT / test_name
+        test_dir.mkdir(parents=True, exist_ok=True)
+        body = f"""import XCTest
+import {module_name}
 
 final class ImportSmokeTests: XCTestCase {{
     func testModulesLink() {{
@@ -117,7 +106,7 @@ final class ImportSmokeTests: XCTestCase {{
     }}
 }}
 """
-    (test_dir / "ImportSmokeTests.swift").write_text(body)
+        (test_dir / "ImportSmokeTests.swift").write_text(body)
 
 
 def main() -> None:
@@ -129,7 +118,6 @@ def main() -> None:
 
     products: list[str] = []
     targets: list[str] = []
-    active_shims: dict[str, str] = {}
     active_modules: list[str] = []
     package_dependencies: list[str] = []
     seen_package_urls: set[str] = set()
@@ -144,25 +132,23 @@ def main() -> None:
 
         library_name = source["libraryName"]
         module_name = source["moduleName"]
-        shim_name = shim_target_name(module_name)
-        active_shims[shim_name] = module_name
         active_modules.append(module_name)
 
         spm_deps = source.get("swiftPackageDependencies", [])
-        extra_products: list[dict] = []
+        if spm_deps:
+            raise SystemExit(
+                f"{source['id']} declares swiftPackageDependencies, but direct "
+                "binary products do not support extra target dependencies"
+            )
         for spec in spm_deps:
             if spec["url"] not in seen_package_urls:
                 package_dependencies.append(render_package_dependency(spec))
                 seen_package_urls.add(spec["url"])
-            for product_name in spec.get("products", []):
-                extra_products.append(
-                    {"name": product_name, "package": spec["package"]}
-                )
 
         products.append(
             f"""        .library(
             name: {quoted(library_name)},
-            targets: [{quoted(module_name)}, {quoted(shim_name)}]
+            targets: [{quoted(module_name)}]
         )"""
         )
         if local_binary_path:
@@ -180,17 +166,17 @@ def main() -> None:
             checksum: {quoted(checksum)}
         )"""
             )
-        targets.append(render_shim_target(module_name, shim_name, extra_products))
 
     if active_modules:
-        test_deps = ", ".join(quoted(shim_target_name(m)) for m in active_modules)
-        targets.append(
-            f"""        .testTarget(
-            name: {quoted(TEST_TARGET_NAME)},
-            dependencies: [{test_deps}],
-            path: {quoted(f"Tests/{TEST_TARGET_NAME}")}
+        for module_name in active_modules:
+            test_name = test_target_name(module_name)
+            targets.append(
+                f"""        .testTarget(
+            name: {quoted(test_name)},
+            dependencies: [{quoted(module_name)}],
+            path: {quoted(f"Tests/{test_name}")}
         )"""
-        )
+            )
 
     products_body = ",\n".join(products)
     targets_body = ",\n".join(targets)
@@ -222,7 +208,7 @@ let package = Package(
 """
 
     PACKAGE_PATH.write_text(package_text)
-    write_shim_sources(active_shims)
+    remove_legacy_shims()
     if active_modules:
         write_test_sources(active_modules)
 
