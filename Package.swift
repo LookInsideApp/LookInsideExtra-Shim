@@ -15,7 +15,7 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(url: "https://github.com/LookInsideApp/LookInsideServer.git", branch: "main"),
+        .package(url: "https://github.com/LookInsideApp/LookInside-Server.git", branch: "main"),
     ],
     targets: [
         .binaryTarget(

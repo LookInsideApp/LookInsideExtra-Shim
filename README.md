@@ -35,8 +35,8 @@ Currently mirrored upstreams (see [`Config/upstream-sources.json`](Config/upstre
 
 | Module | Source repo | Linkage |
 | --- | --- | --- |
-| `LookInsideServerStatic` | [LookInsideServer](https://github.com/LookInsideApp/LookInsideServer) | static |
-| `LookInsideServerDynamic` | [LookInsideServer](https://github.com/LookInsideApp/LookInsideServer) | dynamic |
+| `LookInsideServerStatic` | [LookInside-Server](https://github.com/LookInsideApp/LookInside-Server) | static |
+| `LookInsideServerDynamic` | [LookInside-Server](https://github.com/LookInsideApp/LookInside-Server) | dynamic |
 
 ---
 

@@ -1,7 +1,7 @@
 [
   {
     "id": "lookinside-server-static",
-    "repository": "https://github.com/LookInsideApp/LookInsideServer.git",
+    "repository": "https://github.com/LookInsideApp/LookInside-Server.git",
     "moduleName": "LookInsideServerStatic",
     "libraryName": "LookInsideServerStatic",
     "buildCommand": "make package-static",
@@ -12,7 +12,7 @@
   },
   {
     "id": "lookinside-server-dynamic",
-    "repository": "https://github.com/LookInsideApp/LookInsideServer.git",
+    "repository": "https://github.com/LookInsideApp/LookInside-Server.git",
     "moduleName": "LookInsideServerDynamic",
     "libraryName": "LookInsideServerDynamic",
     "buildCommand": "make package-dynamic",
