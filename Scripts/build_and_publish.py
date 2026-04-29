@@ -49,11 +49,7 @@ def build_archive(source, *, token, workdir):
     raw_log = workdir / f"{source['id']}-build.log"
     build_cmd = (
         f'set -o pipefail; '
-        f'if command -v xcbeautify >/dev/null 2>&1; then '
-        f'{source["buildCommand"]} 2>&1 | tee {shlex.quote(str(raw_log))} | xcbeautify; '
-        f'else '
-        f'{source["buildCommand"]} 2>&1 | tee {shlex.quote(str(raw_log))}; '
-        f'fi'
+        f'{source["buildCommand"]} 2>&1 | tee {shlex.quote(str(raw_log))} | xcbeautify'
     )
     try:
         run(build_cmd, cwd=src_dir, env=os.environ.copy(), shell=True)
