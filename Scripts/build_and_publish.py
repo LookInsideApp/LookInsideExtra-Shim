@@ -46,8 +46,19 @@ def repo_name():
 def build_archive(source, *, token, workdir):
     src_dir = workdir / source["id"]
     run(["git", "clone", "--quiet", authed_clone_url(source["repository"], token), str(src_dir)])
-    build_cmd = f'set -o pipefail; {source["buildCommand"]} | xcbeautify'
-    run(build_cmd, cwd=src_dir, env=os.environ.copy(), shell=True)
+    raw_log = workdir / f"{source['id']}-build.log"
+    build_cmd = (
+        f'set -o pipefail; '
+        f'{source["buildCommand"]} 2>&1 | tee {shlex.quote(str(raw_log))} | xcbeautify'
+    )
+    try:
+        run(build_cmd, cwd=src_dir, env=os.environ.copy(), shell=True)
+    except subprocess.CalledProcessError:
+        if raw_log.exists():
+            print("----- raw xcodebuild log (tail) -----", flush=True)
+            tail = raw_log.read_text(errors="replace").splitlines()[-400:]
+            print("\n".join(tail), flush=True)
+        raise
 
     artifact = src_dir / source["artifactPath"]
     if artifact.is_file():
