@@ -12,7 +12,7 @@ let package = Package(
         .library(
             name: "LookInsideExtraSwiftUserInterfaceSupport",
             targets: ["LookInsideExtraSwiftUserInterfaceSupport", "LookInsideExtraSwiftUserInterfaceSupportPackageShim"]
-        )
+        ),
     ],
     dependencies: [
         .package(url: "https://github.com/LookInsideApp/LookInside-Server.git", branch: "main"),
@@ -32,6 +32,6 @@ let package = Package(
             name: "LookInsideExtraShimTests",
             dependencies: ["LookInsideExtraSwiftUserInterfaceSupportPackageShim"],
             path: "Tests/LookInsideExtraShimTests"
-        )
+        ),
     ]
 )

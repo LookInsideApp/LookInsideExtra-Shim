@@ -1,5 +1,5 @@
-import XCTest
 import LookInsideExtraSwiftUserInterfaceSupport
+import XCTest
 
 final class ImportSmokeTests: XCTestCase {
     func testModulesLink() {

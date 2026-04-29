@@ -33,9 +33,9 @@ Each library is a thin shim around a `.binaryTarget` whose URL points at the `st
 
 Currently mirrored upstreams (see [`Config/upstream-sources.json`](Config/upstream-sources.json)):
 
-| Module | Source repo | Linkage |
-| --- | --- | --- |
-| `LookInsideServerStatic` | [LookInside-Server](https://github.com/LookInsideApp/LookInside-Server) | static |
+| Module                    | Source repo                                                             | Linkage |
+| ------------------------- | ----------------------------------------------------------------------- | ------- |
+| `LookInsideServerStatic`  | [LookInside-Server](https://github.com/LookInsideApp/LookInside-Server) | static  |
 | `LookInsideServerDynamic` | [LookInside-Server](https://github.com/LookInsideApp/LookInside-Server) | dynamic |
 
 ---
