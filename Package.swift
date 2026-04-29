@@ -20,8 +20,8 @@ let package = Package(
     targets: [
         .binaryTarget(
             name: "LookInsideExtraSwiftUserInterfaceSupport",
-            url: "https://github.com/LookInsideApp/LookInsideExtra-Shim/releases/download/storage/LookInsideExtraSwiftUserInterfaceSupport.xcframework.zip?sha256=458f5fa2ca9cf98589d5f1e9f75ec2b044f057fa07e7741553141dd5f4da7a65",
-            checksum: "458f5fa2ca9cf98589d5f1e9f75ec2b044f057fa07e7741553141dd5f4da7a65"
+            url: "https://github.com/LookInsideApp/LookInsideExtra-Shim/releases/download/storage/LookInsideExtraSwiftUserInterfaceSupport.xcframework.zip?sha256=5a7e013e846c0bb2d444aafc74adb018356dfb346d122512d6cac450e0f6a206",
+            checksum: "5a7e013e846c0bb2d444aafc74adb018356dfb346d122512d6cac450e0f6a206"
         ),
         .target(
             name: "LookInsideExtraSwiftUserInterfaceSupportPackageShim",
