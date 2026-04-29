@@ -29,7 +29,7 @@ targets: [
 ]
 ```
 
-Each library is a thin shim around a `.binaryTarget` whose URL points at the `storage` GitHub Release on this repo. URLs include a checksum query so SwiftPM caches stay clean across rebuilds.
+Each library product points directly at a `.binaryTarget` whose URL lives on the same semver GitHub Release tag as the package version.
 
 Currently mirrored upstreams (see [`Config/upstream-sources.json`](Config/upstream-sources.json)):
 
@@ -42,9 +42,9 @@ Currently mirrored upstreams (see [`Config/upstream-sources.json`](Config/upstre
 
 ## Release layout
 
-- The `storage` GitHub Release on this repo is the binary storage location. Server artifacts are uploaded with checksum-bearing file names so older semver tags keep resolving to the exact bytes they pinned.
-- Swift Package consumers pin semver tags (`X.Y.Z`) on this repo. Each successful **Build and Publish** run reads the latest `X.Y.Z`, increments patch by 1, and publishes the new tag.
-- Only GitHub Actions writes to `storage`. Local laptops never upload there.
+- Swift Package consumers pin semver tags (`X.Y.Z`) on this repo.
+- Each successful **Build and Publish** run reads the latest `X.Y.Z`, increments patch by 1, builds the binary assets, renders `Package.swift` with URLs for that new tag, commits the manifest, pushes `main` plus the tag, then uploads the assets to that tag's GitHub Release.
+- Asset names stay stable across releases, for example `LookInsideServer.xcframework.zip` and `LookInsideServerDynamic.xcframework.zip`; SwiftPM pins exact bytes via the checksum in `Package.swift`.
 
 ---
 
@@ -56,9 +56,9 @@ Currently mirrored upstreams (see [`Config/upstream-sources.json`](Config/upstre
 
 1. Clones each upstream listed in `Config/upstream-sources.json`.
 2. Builds it via `make package | xcbeautify`.
-3. Uploads the resulting xcframework zip to `storage` with `--clobber`.
-4. Regenerates `Package.swift` with fresh checksums and commits to `main`.
-5. Publishes the next patch semver tag for SwiftPM consumers.
+3. Computes the resulting xcframework zip checksums.
+4. Regenerates `Package.swift` with URLs under the next semver release tag.
+5. Commits the manifest, pushes `main` and the tag, then uploads the xcframework zips to that release.
 
 Run `swift test` against the rendered manifest before publishing or immediately after the release tag is cut to verify binary imports.
 
@@ -75,18 +75,18 @@ The [LookInside-Auth](https://github.com/LookInsideApp/LookInside-Auth) repo hol
 5. Restore the signing keychain, codesign and notarize via `notarytool`, staple, and re-zip.
 6. Upload the signed zip, its `.sha256`, and a `.version` plain-text asset to `storage`. The host app reads `.version` to detect a stale local helper.
 
-CI in this repo never runs `swift build` / `swift test` — the SwiftPM checksum machinery does not need it, and GitHub-hosted runners have slow downloads.
+CI in this repo does not run `swift build` / `swift test` during release creation because the release assets do not exist until after the manifest commit is tagged and uploaded.
 
 ---
 
 ## Local development
 
 ```bash
-Scripts/build_and_publish.py          # exercise the mirror flow locally
+Scripts/build_and_publish.py --release-tag 0.1.5  # exercise the mirror flow locally
 Scripts/sign-and-notarize-app.sh      # sign a .app bundle locally
 ```
 
-Local runs must not upload to `storage` — that path is reserved for CI.
+Local runs build assets into `build/release-assets/` and render `Package.swift`; they do not upload GitHub Release assets.
 
 `swift build` and any local tests of `Package.swift` are a development-only concern.
 
@@ -94,4 +94,4 @@ Local runs must not upload to `storage` — that path is reserved for CI.
 
 ## License
 
-Source-available. The binaries on the `storage` release inherit their upstream license.
+Source-available. Release binaries inherit their upstream license.

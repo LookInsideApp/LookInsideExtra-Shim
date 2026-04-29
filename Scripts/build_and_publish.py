@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Clone upstream repos, build xcframeworks with `make package`, upload them to the `storage` release."""
+"""Clone upstream repos, build xcframeworks, and render the release manifest."""
 
 from __future__ import annotations
 
@@ -18,7 +18,6 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SOURCES_PATH = REPO_ROOT / "Config" / "upstream-sources.json"
 RENDER_SCRIPT = REPO_ROOT / "Scripts" / "render_package_manifest.py"
-STORAGE_TAG = "storage"
 
 
 def run(cmd, *, cwd=None, env=None, shell=False, capture=False):
@@ -77,29 +76,8 @@ def checksum(path):
     return out.split()[0]
 
 
-def checksummed_asset_name(asset_name, sha):
-    short_sha = sha[:12]
-    xcframework_suffix = ".xcframework.zip"
-    if asset_name.endswith(xcframework_suffix):
-        stem = asset_name[:-len(xcframework_suffix)]
-        return f"{stem}-{short_sha}{xcframework_suffix}"
-
-    stem, suffix = os.path.splitext(asset_name)
-    return f"{stem}-{short_sha}{suffix}"
-
-
-def ensure_storage_release():
-    probe = subprocess.run(
-        ["gh", "release", "view", STORAGE_TAG],
-        cwd=REPO_ROOT, text=True, capture_output=True,
-    )
-    if probe.returncode != 0:
-        run(
-            ["gh", "release", "create", STORAGE_TAG,
-             "--title", "Binary Storage",
-             "--notes", "Rebuilt xcframework archives. Always the latest build."],
-            cwd=REPO_ROOT,
-        )
+def release_download_url(mirror_repo, release_tag, asset_name):
+    return f"https://github.com/{mirror_repo}/releases/download/{release_tag}/{asset_name}"
 
 
 def render_package(state):
@@ -137,6 +115,16 @@ def load_existing_mirrors(sources):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--release-tag",
+        required=True,
+        help="Version tag whose GitHub Release will host the built artifacts.",
+    )
+    parser.add_argument(
+        "--asset-output-dir",
+        default="build/release-assets",
+        help="Directory to copy release assets into before the GitHub Release upload step.",
+    )
     parser.add_argument("--source", action="append", dest="source_ids",
                         help="Only build the given source id. Repeatable.")
     args = parser.parse_args()
@@ -150,33 +138,26 @@ def main():
 
     mirror_repo = repo_name()
     token = os.environ.get("UPSTREAM_MIRROR_TOKEN") or os.environ.get("GH_TOKEN")
+    asset_output_dir = Path(args.asset_output_dir)
+    if not asset_output_dir.is_absolute():
+        asset_output_dir = REPO_ROOT / asset_output_dir
+    if asset_output_dir.exists():
+        shutil.rmtree(asset_output_dir)
+    asset_output_dir.mkdir(parents=True)
 
     with tempfile.TemporaryDirectory(prefix="lookinside-build-") as work:
         workdir = Path(work)
-        archives = []
         mirrors = load_existing_mirrors(json.loads(SOURCES_PATH.read_text()))
 
         for source in sources:
             print(f"==> {source['id']}", flush=True)
             archive = build_archive(source, token=token, workdir=workdir)
             sha = checksum(archive)
-            configured_name = source.get("assetName", archive.name)
-            name = checksummed_asset_name(configured_name, sha)
-            upload_archive = archive
-            if archive.name != name:
-                upload_archive = workdir / name
-                shutil.copy2(archive, upload_archive)
-            url = (
-                f"https://github.com/{mirror_repo}/releases/download/{STORAGE_TAG}/{name}"
-                f"?sha256={sha}"
-            )
+            name = source.get("assetName", archive.name)
+            asset_path = asset_output_dir / name
+            shutil.copy2(archive, asset_path)
+            url = release_download_url(mirror_repo, args.release_tag, name)
             mirrors[source["id"]] = {"assetName": name, "checksum": sha, "downloadURL": url}
-            archives.append(upload_archive)
-
-        ensure_storage_release()
-        for archive in archives:
-            run(["gh", "release", "upload", STORAGE_TAG, str(archive), "--clobber"],
-                cwd=REPO_ROOT)
 
         render_package({"mirrors": mirrors})
 

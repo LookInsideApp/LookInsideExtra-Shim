@@ -38,14 +38,6 @@ jobs:
       - name: Install xcbeautify
         run: brew install xcbeautify
 
-      - name: Build and publish
-        run: |
-          if [ -n "${{ inputs.source_id }}" ]; then
-            ./Scripts/build_and_publish.py --source "${{ inputs.source_id }}"
-          else
-            ./Scripts/build_and_publish.py
-          fi
-
       - name: Determine next release version
         id: version
         run: |
@@ -67,24 +59,38 @@ jobs:
           echo "next_tag=$next_tag" >> "$GITHUB_OUTPUT"
           echo "Next release tag: $next_tag"
 
+      - name: Build binaries and render manifest
+        run: |
+          if [ -n "${{ inputs.source_id }}" ]; then
+            ./Scripts/build_and_publish.py \
+              --release-tag "${{ steps.version.outputs.next_tag }}" \
+              --source "${{ inputs.source_id }}"
+          else
+            ./Scripts/build_and_publish.py \
+              --release-tag "${{ steps.version.outputs.next_tag }}"
+          fi
+
       - name: Commit updated manifest
         id: commit
         run: |
-          if git diff --quiet -- Package.swift Sources Tests; then
+          if git diff --quiet -- Package.swift Tests; then
             echo "No manifest changes to commit."
             echo "created_commit=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add Package.swift Sources Tests
+          git add Package.swift Tests
           git commit -m "Build and publish ${{ steps.version.outputs.next_tag }}"
-          git push origin HEAD:main
+          git tag "${{ steps.version.outputs.next_tag }}"
+          git push origin HEAD:main "${{ steps.version.outputs.next_tag }}"
           echo "created_commit=true" >> "$GITHUB_OUTPUT"
 
       - name: Publish version release
+        if: steps.commit.outputs.created_commit == 'true'
         run: |
           gh release create "${{ steps.version.outputs.next_tag }}" \
-            --target "$(git rev-parse HEAD)" \
+            --verify-tag \
             --title "${{ steps.version.outputs.next_tag }}" \
-            --notes "Swift Package release ${{ steps.version.outputs.next_tag }}. Binary xcframework archives live on the storage release."
+            --notes "Swift Package release ${{ steps.version.outputs.next_tag }}." \
+            build/release-assets/*.zip
