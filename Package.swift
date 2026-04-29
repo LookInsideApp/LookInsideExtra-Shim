@@ -10,28 +10,39 @@ let package = Package(
     ],
     products: [
         .library(
-            name: "LookInsideExtraSwiftUserInterfaceSupport",
-            targets: ["LookInsideExtraSwiftUserInterfaceSupport", "LookInsideExtraSwiftUserInterfaceSupportPackageShim"]
+            name: "LookInsideServerStatic",
+            targets: ["LookInsideServerStatic", "LookInsideServerStaticPackageShim"]
         ),
-    ],
-    dependencies: [
-        .package(url: "https://github.com/LookInsideApp/LookInside-Server.git", branch: "main"),
+        .library(
+            name: "LookInsideServerDynamic",
+            targets: ["LookInsideServerDynamic", "LookInsideServerDynamicPackageShim"]
+        )
     ],
     targets: [
         .binaryTarget(
-            name: "LookInsideExtraSwiftUserInterfaceSupport",
-            url: "https://github.com/LookInsideApp/LookInsideExtra-Shim/releases/download/storage/LookInsideExtraSwiftUserInterfaceSupport.xcframework.zip?sha256=5a7e013e846c0bb2d444aafc74adb018356dfb346d122512d6cac450e0f6a206",
-            checksum: "5a7e013e846c0bb2d444aafc74adb018356dfb346d122512d6cac450e0f6a206"
+            name: "LookInsideServerStatic",
+            url: "https://github.com/LookInsideApp/LookInside-Release/releases/download/storage/LookInsideServer.xcframework.zip?sha256=e6dcc9fdd2f2f3c245f924f290f151bd12b3b339c752c945675518f654afd7af",
+            checksum: "e6dcc9fdd2f2f3c245f924f290f151bd12b3b339c752c945675518f654afd7af"
         ),
         .target(
-            name: "LookInsideExtraSwiftUserInterfaceSupportPackageShim",
-            dependencies: ["LookInsideExtraSwiftUserInterfaceSupport", .product(name: "LookinServer", package: "LookInsideServer")],
-            path: "Sources/LookInsideExtraSwiftUserInterfaceSupportPackageShim"
+            name: "LookInsideServerStaticPackageShim",
+            dependencies: ["LookInsideServerStatic"],
+            path: "Sources/LookInsideServerStaticPackageShim"
+        ),
+        .binaryTarget(
+            name: "LookInsideServerDynamic",
+            url: "https://github.com/LookInsideApp/LookInside-Release/releases/download/storage/LookInsideServerDynamic.xcframework.zip?sha256=a5945c032b449eaf68c91fabba7f4bc2f1fb620a8674fe4ac608dce2a9900cf3",
+            checksum: "a5945c032b449eaf68c91fabba7f4bc2f1fb620a8674fe4ac608dce2a9900cf3"
+        ),
+        .target(
+            name: "LookInsideServerDynamicPackageShim",
+            dependencies: ["LookInsideServerDynamic"],
+            path: "Sources/LookInsideServerDynamicPackageShim"
         ),
         .testTarget(
-            name: "LookInsideExtraShimTests",
-            dependencies: ["LookInsideExtraSwiftUserInterfaceSupportPackageShim"],
-            path: "Tests/LookInsideExtraShimTests"
-        ),
+            name: "LookInsideReleaseTests",
+            dependencies: ["LookInsideServerStaticPackageShim", "LookInsideServerDynamicPackageShim"],
+            path: "Tests/LookInsideReleaseTests"
+        )
     ]
 )
