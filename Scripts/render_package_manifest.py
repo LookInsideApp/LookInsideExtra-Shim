@@ -12,7 +12,7 @@ SOURCES_PATH = REPO_ROOT / "Config" / "upstream-sources.json"
 PACKAGE_PATH = REPO_ROOT / "Package.swift"
 SHIMS_ROOT = REPO_ROOT / "Sources"
 TESTS_ROOT = REPO_ROOT / "Tests"
-TEST_TARGET_NAME = "LookInsideExtraShimTests"
+TEST_TARGET_NAME = "LookInsideReleaseTests"
 
 
 def load_json(path: Path) -> object:
@@ -207,7 +207,7 @@ def main() -> None:
 import PackageDescription
 
 let package = Package(
-    name: "LookInsideExtra-Shim",
+    name: "LookInside-Release",
     platforms: [
         .iOS("15.0"),
         .macOS("15.0"),

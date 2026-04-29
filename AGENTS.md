@@ -5,7 +5,7 @@
 This repo has two independent responsibilities:
 
 1. Mirror the remaining upstream xcframework(s) declared in `Config/upstream-sources.json` as Swift Package binary targets on the `storage` release.
-2. Re-sign and notarize the LookInside auth server `.app` produced by the `LookInsideAuthenticator` repo, and publish the signed zip on the `storage` release.
+2. Re-sign and notarize the LookInside auth server `.app` produced by the `LookInside-Auth` repo, and publish the signed zip on the `storage` release.
 
 The authenticator and authenticator-ui xcframeworks are retired. The auth server now ships as a standalone notarized `.app`, signed in this repo.
 
@@ -38,7 +38,7 @@ The authenticator and authenticator-ui xcframeworks are retired. The auth server
 ## Build and Publish Auth Server workflow
 
 - Workflow file: `.github/workflows/sign-auth-server.yml`, named **Build and Publish Auth Server**.
-- Trigger: `workflow_dispatch`. Inputs: `source_ref` (git ref of `LookInsideApp/LookInsideAuthenticator`, default `main`), `output_asset` (default `lookinside-auth-server.app.zip`).
+- Trigger: `workflow_dispatch`. Inputs: `source_ref` (git ref of `LookInsideApp/LookInside-Auth`, default `main`), `output_asset` (default `lookinside-auth-server.app.zip`).
 - The authenticator repo contains source only. It has no workflows. All packaging, signing, notarization, and publishing for the auth server live here.
 - Steps:
   1. Check out the shim repo and the authenticator source (private, cloned with `UPSTREAM_MIRROR_TOKEN`).

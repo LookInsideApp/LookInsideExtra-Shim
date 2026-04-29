@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       source_ref:
-        description: Git ref (branch, tag, or SHA) of LookInsideAuthenticator to build.
+        description: Git ref (branch, tag, or SHA) of LookInside-Auth to build.
         required: true
         type: string
         default: main
@@ -40,7 +40,7 @@ jobs:
       - name: Checkout authenticator source
         uses: actions/checkout@v4
         with:
-          repository: LookInsideApp/LookInsideAuthenticator
+          repository: LookInsideApp/LookInside-Auth
           ref: ${{ inputs.source_ref }}
           path: authenticator
           token: ${{ secrets.UPSTREAM_MIRROR_TOKEN }}

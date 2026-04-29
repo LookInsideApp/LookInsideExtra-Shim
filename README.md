@@ -1,9 +1,9 @@
-# LookInsideExtra-Shim
+# LookInside-Release
 
 Two responsibilities, one repo:
 
 1. **SwiftPM mirror** for the prebuilt LookInside XCFrameworks. Consumers add this package and get binary targets pinned by checksum.
-2. **Auth helper signing pipeline.** Builds the [LookInsideAuthenticator](https://github.com/LookInsideApp/LookInsideAuthenticator) source, code-signs it, notarizes it, and publishes the helper `.app` zip.
+2. **Auth helper signing pipeline.** Builds the [LookInside-Auth](https://github.com/LookInsideApp/LookInside-Auth) source, code-signs it, notarizes it, and publishes the helper `.app` zip.
 
 Website · [lookinside-app.com](https://lookinside-app.com)
 
@@ -14,15 +14,15 @@ Website · [lookinside-app.com](https://lookinside-app.com)
 ```swift
 // Package.swift
 dependencies: [
-    .package(url: "https://github.com/LookInsideApp/LookInsideExtra-Shim.git", from: "X.Y.Z"),
+    .package(url: "https://github.com/LookInsideApp/LookInside-Release.git", from: "X.Y.Z"),
 ],
 targets: [
     .target(
         name: "YourApp",
         dependencies: [
             .product(
-                name: "LookInsideExtraSwiftUserInterfaceSupport",
-                package: "LookInsideExtra-Shim"
+                name: "LookInsideServerStatic",
+                package: "LookInside-Release"
             ),
         ]
     ),
@@ -33,9 +33,10 @@ Each library is a thin shim around a `.binaryTarget` whose URL points at the `st
 
 Currently mirrored upstreams (see [`Config/upstream-sources.json`](Config/upstream-sources.json)):
 
-| Module | Source repo |
-| --- | --- |
-| `LookInsideExtraSwiftUserInterfaceSupport` | [LookInsideExtra-SwiftUserInterfaceSupport](https://github.com/LookInsideApp/LookInsideExtra-SwiftUserInterfaceSupport) |
+| Module | Source repo | Linkage |
+| --- | --- | --- |
+| `LookInsideServerStatic` | [LookInsideServer](https://github.com/LookInsideApp/LookInsideServer) | static |
+| `LookInsideServerDynamic` | [LookInsideServer](https://github.com/LookInsideApp/LookInsideServer) | dynamic |
 
 ---
 
@@ -63,7 +64,7 @@ Currently mirrored upstreams (see [`Config/upstream-sources.json`](Config/upstre
 
 `.github/workflows/sign-auth-server.yml` (manual `workflow_dispatch`)
 
-The [LookInsideAuthenticator](https://github.com/LookInsideApp/LookInsideAuthenticator) repo holds source only. All packaging, signing, notarization, and publishing for the helper happens here:
+The [LookInside-Auth](https://github.com/LookInsideApp/LookInside-Auth) repo holds source only. All packaging, signing, notarization, and publishing for the helper happens here:
 
 1. Check out this repo and the authenticator source at the requested ref.
 2. Install Tuist via `mise`.
