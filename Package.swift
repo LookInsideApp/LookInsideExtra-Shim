@@ -21,13 +21,13 @@ let package = Package(
     targets: [
         .binaryTarget(
             name: "LookInsideServerStatic",
-            url: "https://github.com/LookInsideApp/LookInside-Release/releases/download/0.1.5/LookInsideServer.xcframework.zip",
-            checksum: "d8b1b5849c461760663c637ef19bd329adf68fc0b20690c693c456e5b32bb637"
+            url: "https://github.com/LookInsideApp/LookInside-Release/releases/download/0.1.6/LookInsideServer.xcframework.zip",
+            checksum: "29986fd5b4d72582cf8f6da7de7b3ee86ba6180997afac7f7c0eaaeb1822bdb9"
         ),
         .binaryTarget(
             name: "LookInsideServerDynamic",
-            url: "https://github.com/LookInsideApp/LookInside-Release/releases/download/0.1.5/LookInsideServerDynamic.xcframework.zip",
-            checksum: "612685e40679d021205f62273d08a1cfbaedc83d2760ce9cf1f618181ce8b962"
+            url: "https://github.com/LookInsideApp/LookInside-Release/releases/download/0.1.6/LookInsideServerDynamic.xcframework.zip",
+            checksum: "e9235493b27ebae3dc82e56610b8af5388d77498ff5b17c23eb973673cb8a9dc"
         ),
         .testTarget(
             name: "LookInsideReleaseStaticTests",
