@@ -140,20 +140,20 @@ jobs:
             --repo "$GITHUB_REPOSITORY" \
             --clobber
 
-      - name: Validate Web Publishing Secret
-        env:
-          LOOKINSIDE_WEB_RELEASE_TOKEN: ${{ secrets.LOOKINSIDE_WEB_RELEASE_TOKEN }}
-        run: |
-          set -euo pipefail
-          [[ -n "$LOOKINSIDE_WEB_RELEASE_TOKEN" ]] || { echo "LOOKINSIDE_WEB_RELEASE_TOKEN secret is required." >&2; exit 1; }
+	      - name: Validate Web Publishing Secret
+	        env:
+	          LOOKINSIDE_WEB_RELEASE_TOKEN: ${{ secrets.LOOKINSIDE_WEB_RELEASE_TOKEN || secrets.UPSTREAM_MIRROR_TOKEN }}
+	        run: |
+	          set -euo pipefail
+	          [[ -n "$LOOKINSIDE_WEB_RELEASE_TOKEN" ]] || { echo "LOOKINSIDE_WEB_RELEASE_TOKEN or UPSTREAM_MIRROR_TOKEN secret is required." >&2; exit 1; }
 
       - name: Checkout web repository
         uses: actions/checkout@v4
-        with:
-          repository: LookInsideApp/LookInside-Web
-          ref: main
-          path: web
-          token: ${{ secrets.LOOKINSIDE_WEB_RELEASE_TOKEN }}
+	        with:
+	          repository: LookInsideApp/LookInside-Web
+	          ref: main
+	          path: web
+	          token: ${{ secrets.LOOKINSIDE_WEB_RELEASE_TOKEN || secrets.UPSTREAM_MIRROR_TOKEN }}
 
       - name: Sync signed app to web
         run: |

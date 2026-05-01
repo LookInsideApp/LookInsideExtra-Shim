@@ -8,3 +8,4 @@ publish:
 
 test:
 	./Scripts/test-sign-and-notarize-app.sh
+	./Scripts/test-auth-server-release-workflow.sh
