@@ -90,6 +90,83 @@ unlock_keychain() {
 		"$KEYCHAIN_PATH"
 }
 
+is_mach_o_file() {
+	local path="$1"
+	file -b "$path" 2>/dev/null | grep -q "Mach-O"
+}
+
+contains_mach_o_file() {
+	local path="$1"
+	local candidate
+
+	while IFS= read -r candidate; do
+		if is_mach_o_file "$candidate"; then
+			return 0
+		fi
+	done < <(find "$path" -type f -print)
+
+	return 1
+}
+
+sign_code_path() {
+	local path="$1"
+
+	log "Signing nested code: $path"
+	codesign \
+		--sign "$SIGNING_IDENTITY" \
+		--options runtime \
+		--timestamp \
+		--force \
+		--verbose=2 \
+		"$path"
+}
+
+sign_nested_code() {
+	local main_executable_dir="$APP_PATH/Contents/MacOS"
+	local mach_o_files=()
+	local bundles=()
+	local candidate
+
+	while IFS= read -r candidate; do
+		if [[ "$candidate" == "$main_executable_dir/"* ]]; then
+			continue
+		fi
+		if is_mach_o_file "$candidate"; then
+			mach_o_files+=("$candidate")
+		fi
+	done < <(find "$APP_PATH/Contents" -type f -print)
+
+	while IFS= read -r candidate; do
+		bundles+=("$candidate")
+	done < <(
+		find "$APP_PATH/Contents" -type d \
+			\( -name "*.app" -o -name "*.appex" -o -name "*.bundle" -o -name "*.framework" -o -name "*.xpc" \) \
+			-print |
+			awk '{ print length, $0 }' |
+			sort -rn |
+			cut -d' ' -f2-
+	)
+
+	if [[ "${#mach_o_files[@]}" -gt 0 ]]; then
+		for candidate in "${mach_o_files[@]}"; do
+			sign_code_path "$candidate"
+		done
+	fi
+
+	if [[ "${#bundles[@]}" -gt 0 ]]; then
+		for candidate in "${bundles[@]}"; do
+			if [[ "$candidate" == *.bundle ]] && ! contains_mach_o_file "$candidate"; then
+				if [[ -d "$candidate/Contents/_CodeSignature" ]]; then
+					log "Removing stale resource bundle signature: $candidate"
+					rm -rf "$candidate/Contents/_CodeSignature"
+				fi
+				continue
+			fi
+			sign_code_path "$candidate"
+		done
+	fi
+}
+
 sign_app_bundle() {
 	local executables=()
 	while IFS= read -r executable; do
@@ -109,6 +186,9 @@ sign_app_bundle() {
 			--verbose=2 \
 			"$executable"
 	done
+
+	log "Signing nested app code"
+	sign_nested_code
 
 	log "Signing app bundle"
 	local codesign_args=(
@@ -175,6 +255,7 @@ require_command xcrun
 require_command ditto
 require_command security
 require_command spctl
+require_command file
 
 ensure_signing_env
 unlock_keychain
