@@ -139,3 +139,41 @@ jobs:
           gh release upload storage "$version_asset" \
             --repo "$GITHUB_REPOSITORY" \
             --clobber
+
+      - name: Validate Web Publishing Secret
+        env:
+          LOOKINSIDE_WEB_RELEASE_TOKEN: ${{ secrets.LOOKINSIDE_WEB_RELEASE_TOKEN }}
+        run: |
+          set -euo pipefail
+          [[ -n "$LOOKINSIDE_WEB_RELEASE_TOKEN" ]] || { echo "LOOKINSIDE_WEB_RELEASE_TOKEN secret is required." >&2; exit 1; }
+
+      - name: Checkout web repository
+        uses: actions/checkout@v4
+        with:
+          repository: LookInsideApp/LookInside-Web
+          ref: main
+          path: web
+          token: ${{ secrets.LOOKINSIDE_WEB_RELEASE_TOKEN }}
+
+      - name: Sync signed app to web
+        run: |
+          set -euo pipefail
+          bash shim/Scripts/sync-auth-server-assets-to-web.sh \
+            --web-dir web \
+            --asset "build/signed/${{ inputs.output_asset }}"
+
+      - name: Commit web auth server assets
+        working-directory: web
+        env:
+          MARKETING_VERSION: ${{ steps.stamp.outputs.marketing_version }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/downloads/auth-server
+          if git diff --cached --quiet; then
+            echo "No Web auth server changes to publish."
+            exit 0
+          fi
+          git commit -m "Publish Auth Server $MARKETING_VERSION"
+          git push origin HEAD:main
