@@ -26,8 +26,8 @@ jobs:
     runs-on: macos-latest
     timeout-minutes: 60
     env:
-      GH_TOKEN: ${{ secrets.UPSTREAM_MIRROR_TOKEN }}
-      GITHUB_TOKEN: ${{ secrets.UPSTREAM_MIRROR_TOKEN }}
+      GH_TOKEN: ${{ github.token }}
+      GITHUB_TOKEN: ${{ github.token }}
 
     steps:
       - name: Checkout shim repository
@@ -35,7 +35,7 @@ jobs:
         with:
           ref: main
           path: shim
-          token: ${{ secrets.UPSTREAM_MIRROR_TOKEN }}
+          token: ${{ github.token }}
 
       - name: Checkout authenticator source
         uses: actions/checkout@v4
@@ -43,7 +43,7 @@ jobs:
           repository: LookInsideApp/LookInside-Auth
           ref: ${{ inputs.source_ref }}
           path: authenticator
-          token: ${{ secrets.UPSTREAM_MIRROR_TOKEN }}
+          token: ${{ secrets.LOOKINSIDE_WEB_RELEASE_TOKEN || secrets.UPSTREAM_MIRROR_TOKEN }}
 
       - name: Select Xcode
         run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer

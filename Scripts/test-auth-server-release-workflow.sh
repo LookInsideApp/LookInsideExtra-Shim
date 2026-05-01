@@ -18,6 +18,8 @@ assert_contains() {
 
 assert_contains '      - name: Validate Web Publishing Secret'
 assert_contains '        with:'
+assert_contains 'GH_TOKEN: ${{ github.token }}'
+assert_contains 'token: ${{ github.token }}'
 assert_contains 'secrets.LOOKINSIDE_WEB_RELEASE_TOKEN || secrets.UPSTREAM_MIRROR_TOKEN'
 assert_contains 'LOOKINSIDE_WEB_RELEASE_TOKEN or UPSTREAM_MIRROR_TOKEN secret is required.'
 assert_contains 'bash shim/Scripts/sync-auth-server-assets-to-web.sh'
