@@ -134,13 +134,17 @@ sign_nested_code() {
 			cut -d' ' -f2-
 	)
 
-	for candidate in "${mach_o_files[@]}"; do
-		sign_code_path "$candidate"
-	done
+	if [[ "${#mach_o_files[@]}" -gt 0 ]]; then
+		for candidate in "${mach_o_files[@]}"; do
+			sign_code_path "$candidate"
+		done
+	fi
 
-	for candidate in "${bundles[@]}"; do
-		sign_code_path "$candidate"
-	done
+	if [[ "${#bundles[@]}" -gt 0 ]]; then
+		for candidate in "${bundles[@]}"; do
+			sign_code_path "$candidate"
+		done
+	fi
 }
 
 sign_app_bundle() {
