@@ -80,6 +80,15 @@ assert_contains() {
 	grep -F -- "$needle" "$path" >/dev/null
 }
 
+assert_not_contains() {
+	local needle="$1"
+	local path="$2"
+	if grep -F -- "$needle" "$path" >/dev/null; then
+		echo "unexpected log entry: $needle" >&2
+		exit 1
+	fi
+}
+
 write_stub_commands
 
 plain_app="$WORK_DIR/plain/lookinside-auth-server.app"
@@ -103,5 +112,19 @@ run_signing_script "$nested_app" "$nested_zip" "$nested_log"
 [[ -f "$nested_zip" ]]
 assert_contains "$nested_app/Contents/Frameworks/Nested.framework/NestedMachO" "$nested_log"
 assert_contains "$nested_app/Contents/Frameworks/Nested.framework" "$nested_log"
+
+resource_app="$WORK_DIR/resource/lookinside-auth-server.app"
+resource_zip="$WORK_DIR/resource/signed.zip"
+resource_log="$WORK_DIR/resource/calls.log"
+resource_bundle="$resource_app/Contents/Resources/swift-nio_NIOPosix.bundle"
+mkdir -p "$(dirname "$resource_log")"
+make_test_app "$resource_app"
+mkdir -p "$resource_bundle/Contents/_CodeSignature" "$resource_bundle/Contents/Resources"
+printf 'signature\n' > "$resource_bundle/Contents/_CodeSignature/CodeResources"
+printf '{}\n' > "$resource_bundle/Contents/Resources/PrivacyInfo.xcprivacy"
+run_signing_script "$resource_app" "$resource_zip" "$resource_log"
+[[ -f "$resource_zip" ]]
+[[ ! -d "$resource_bundle/Contents/_CodeSignature" ]]
+assert_not_contains "$resource_bundle" "$resource_log"
 
 echo "sign-and-notarize-app tests passed"
