@@ -3,7 +3,7 @@
 Two responsibilities, one repo:
 
 1. **SwiftPM mirror** for the prebuilt LookInside XCFrameworks. Consumers add this package and get binary targets pinned by checksum.
-2. **Auth helper signing pipeline.** Builds the [LookInside-Auth](https://github.com/LookInsideApp/LookInside-Auth) source, code-signs it, notarizes it, and publishes the helper `.app` zip.
+2. **Auth helper signing pipeline.** Builds the LookInside auth helper source, code-signs it, notarizes it, and publishes the helper `.app` zip.
 
 Website · [lookinside-app.com](https://lookinside-app.com)
 
@@ -66,7 +66,7 @@ Run `swift test` against the rendered manifest before publishing or immediately 
 
 `.github/workflows/sign-auth-server.yml` (manual `workflow_dispatch`)
 
-The [LookInside-Auth](https://github.com/LookInsideApp/LookInside-Auth) repo holds source only. All packaging, signing, notarization, and publishing for the helper happens here:
+The auth helper source repo holds source only. All packaging, signing, notarization, and publishing for the helper happens here:
 
 1. Check out this repo and the authenticator source at the requested ref.
 2. Install Tuist via `mise`.
