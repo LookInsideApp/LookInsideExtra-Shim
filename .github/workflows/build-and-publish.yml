@@ -7,6 +7,10 @@ on:
         description: Optional source id to build (e.g. "swiftui-support")
         required: false
         type: string
+      version:
+        description: Explicit X.Y.Z release tag. Defaults to latest patch + 1.
+        required: false
+        type: string
 
 concurrency:
   group: build-and-publish-main
@@ -41,13 +45,30 @@ jobs:
 
       - name: Determine next release version
         id: version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
         run: |
           git fetch --force --tags origin
           latest_tag="$(git tag --list --sort=-version:refname | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1)"
           next_tag="$(python3 - "$latest_tag" <<'PY'
+          import os
+          import re
           import sys
 
           latest = sys.argv[1]
+          override = os.environ.get("INPUT_VERSION", "").strip()
+
+          if override:
+              if not re.fullmatch(r"\d+\.\d+\.\d+", override):
+                  sys.exit(f"Invalid version override: {override!r}. Expected X.Y.Z.")
+              if latest:
+                  l_major, l_minor, l_patch = (int(p) for p in latest.split("."))
+                  o_major, o_minor, o_patch = (int(p) for p in override.split("."))
+                  if (o_major, o_minor, o_patch) <= (l_major, l_minor, l_patch):
+                      sys.exit(f"Version override {override} must be greater than latest tag {latest}.")
+              print(override)
+              raise SystemExit
+
           if not latest:
               print("0.1.0")
               raise SystemExit
