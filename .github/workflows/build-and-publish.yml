@@ -38,16 +38,13 @@ jobs:
           fetch-depth: 0
 
       - name: Select Xcode
+        # FrameworkToolbox 0.5.x declares swift-tools-version 6.2, so the
+        # macos-15 runner's default /Applications/Xcode.app (currently
+        # Xcode 16.4 / Swift 6.1.2) rejects the package graph. Pin to the
+        # newest stable Xcode 26.x preinstalled on macos-latest.
+        # Bump this when actions/runner-images promotes a newer Xcode 26.
         run: |
-          # FrameworkToolbox uses swift-tools-version 6.2, so pick the highest
-          # versioned Xcode installed on the runner (the default symlink may
-          # point at an older Xcode whose toolchain is too old).
-          candidate="$(ls -d /Applications/Xcode_*.app 2>/dev/null | sort -V | tail -1)"
-          if [ -z "$candidate" ]; then
-            candidate="/Applications/Xcode.app"
-          fi
-          echo "Selecting Xcode at $candidate"
-          sudo xcode-select -s "$candidate/Contents/Developer"
+          sudo xcode-select -s /Applications/Xcode_26.3.app/Contents/Developer
           xcodebuild -version
           swift --version
 
