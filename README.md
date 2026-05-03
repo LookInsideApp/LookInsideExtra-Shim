@@ -33,10 +33,10 @@ Each library product points directly at a `.binaryTarget` whose URL lives on the
 
 Currently mirrored upstreams (see [`Config/upstream-sources.json`](Config/upstream-sources.json)):
 
-| Module                    | Source repo                                                             | Linkage |
-| ------------------------- | ----------------------------------------------------------------------- | ------- |
-| `LookInsideServerStatic`  | [LookInside-Server](https://github.com/LookInsideApp/LookInside-Server) | static  |
-| `LookInsideServerDynamic` | [LookInside-Server](https://github.com/LookInsideApp/LookInside-Server) | dynamic |
+| Module                    | Linkage |
+| ------------------------- | ------- |
+| `LookInsideServerStatic`  | static  |
+| `LookInsideServerDynamic` | dynamic |
 
 ---
 
