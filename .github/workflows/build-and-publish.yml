@@ -24,7 +24,7 @@ jobs:
     # Pin the runner image so toolchain availability stays predictable.
     # macos-26-arm64 ships Xcode 26.x preinstalled, matching the local
     # build environment.
-    runs-on: macos-26-arm64
+    runs-on: macos-26
     timeout-minutes: 90
     env:
       GH_TOKEN: ${{ secrets.UPSTREAM_MIRROR_TOKEN }}
