@@ -21,7 +21,7 @@ targets: [
         name: "YourApp",
         dependencies: [
             .product(
-                name: "LookInsideServerStatic",
+                name: "LookInsideServer",
                 package: "LookInside-Release"
             ),
         ]
@@ -29,24 +29,13 @@ targets: [
 ]
 ```
 
-Each library product points directly at a `.binaryTarget` whose URL lives on the same semver GitHub Release tag as the package version.
+The `LookInsideServer` product points at a dynamic `.binaryTarget` whose URL lives on the same semver GitHub Release tag as the package version. `dyld` runs the framework's module initializers when it loads the image, so the server boots automatically without the consumer touching any symbol.
 
 Currently mirrored upstreams (see [`Config/upstream-sources.json`](Config/upstream-sources.json)):
 
-| Module                    | Linkage |
-| ------------------------- | ------- |
-| `LookInsideServerStatic`  | static  |
-| `LookInsideServerDynamic` | dynamic |
-
-### Static integration: `-ObjC` is required
-
-`LookInsideServerStatic` boots itself from `+[LKInjectedBootstrapTrampoline load]`. With static linking, `ld` strips object files whose symbols are never referenced by the app — `+load` would never run, and `LookinServerStart()` would never be called. Add `-ObjC` to the host app's **Other Linker Flags** so the Obj-C runtime category/class loader pulls every `.o` from the archive:
-
-```
-OTHER_LDFLAGS = $(inherited) -ObjC
-```
-
-The dynamic product (`LookInsideServerDynamic`) does not need this — dyld runs all module initializers when it loads the image.
+| Module             | Linkage |
+| ------------------ | ------- |
+| `LookInsideServer` | dynamic |
 
 ---
 
@@ -54,7 +43,7 @@ The dynamic product (`LookInsideServerDynamic`) does not need this — dyld runs
 
 - Swift Package consumers pin semver tags (`X.Y.Z`) on this repo.
 - Each successful **Build and Publish** run reads the latest `X.Y.Z`, increments patch by 1, builds the binary assets, renders `Package.swift` with URLs for that new tag, commits the manifest, pushes `main` plus the tag, then uploads the assets to that tag's GitHub Release.
-- Asset names stay stable across releases, for example `LookInsideServer.xcframework.zip` and `LookInsideServerDynamic.xcframework.zip`; SwiftPM pins exact bytes via the checksum in `Package.swift`.
+- Asset names stay stable across releases (currently `LookInsideServerDynamic.xcframework.zip`); SwiftPM pins exact bytes via the checksum in `Package.swift`.
 
 ---
 
