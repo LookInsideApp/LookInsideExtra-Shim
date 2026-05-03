@@ -1,5 +1,5 @@
 import XCTest
-import LookInsideServerStatic
+import LookInsideServer
 
 final class ImportSmokeTests: XCTestCase {
     func testModulesLink() {

@@ -10,34 +10,20 @@ let package = Package(
     ],
     products: [
         .library(
-            name: "LookInsideServerStatic",
-            targets: ["LookInsideServerStatic"]
-        ),
-        .library(
-            name: "LookInsideServerDynamic",
-            targets: ["LookInsideServerDynamic"]
+            name: "LookInsideServer",
+            targets: ["LookInsideServer"]
         )
     ],
     targets: [
         .binaryTarget(
-            name: "LookInsideServerStatic",
-            url: "https://github.com/LookInsideApp/LookInside-Release/releases/download/0.1.13/LookInsideServer.xcframework.zip",
-            checksum: "3ffe5070eba0f0448e8f9ce78462cfe3a03227b5987e8507467b1ec017b1e8dc"
-        ),
-        .binaryTarget(
-            name: "LookInsideServerDynamic",
-            url: "https://github.com/LookInsideApp/LookInside-Release/releases/download/0.1.13/LookInsideServerDynamic.xcframework.zip",
-            checksum: "aa8b388470357cfb745361b9b4b6aa4368cf6788c740193fbc58d916483cbbf4"
+            name: "LookInsideServer",
+            url: "https://github.com/LookInsideApp/LookInside-Release/releases/download/0.1.14/LookInsideServerDynamic.xcframework.zip",
+            checksum: "3ac1e34a9e67676cf0a4e98ed67ec573831287a07854c5ee6a45c2ddb591a5c8"
         ),
         .testTarget(
-            name: "LookInsideReleaseStaticTests",
-            dependencies: ["LookInsideServerStatic"],
-            path: "Tests/LookInsideReleaseStaticTests"
-        ),
-        .testTarget(
-            name: "LookInsideReleaseDynamicTests",
-            dependencies: ["LookInsideServerDynamic"],
-            path: "Tests/LookInsideReleaseDynamicTests"
+            name: "LookInsideReleaseLookInsideServerTests",
+            dependencies: ["LookInsideServer"],
+            path: "Tests/LookInsideReleaseLookInsideServerTests"
         )
     ]
 )
