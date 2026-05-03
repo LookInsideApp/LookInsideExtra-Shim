@@ -43,9 +43,25 @@ def repo_name():
     )
 
 
+def resolve_source_repo(source):
+    if "repository" in source and source["repository"]:
+        return source["repository"]
+    env_key = source.get("repositoryEnv")
+    if env_key:
+        url = os.environ.get(env_key)
+        if not url:
+            raise SystemExit(
+                f"Source {source['id']!r} expects repository URL in env var {env_key!r}, "
+                "but it is not set."
+            )
+        return url
+    raise SystemExit(f"Source {source['id']!r} has no repository or repositoryEnv field.")
+
+
 def build_archive(source, *, token, workdir):
     src_dir = workdir / source["id"]
-    run(["git", "clone", "--quiet", authed_clone_url(source["repository"], token), str(src_dir)])
+    repo_url = resolve_source_repo(source)
+    run(["git", "clone", "--quiet", authed_clone_url(repo_url, token), str(src_dir)])
     raw_log = workdir / f"{source['id']}-build.log"
     build_cmd = (
         f'set -o pipefail; '

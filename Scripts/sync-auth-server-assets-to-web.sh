@@ -12,7 +12,7 @@ usage() {
 Usage: bash Scripts/sync-auth-server-assets-to-web.sh --web-dir <path> --asset <path>
 
 Options:
-  --web-dir <path>   Checkout path of LookInside-Web.
+  --web-dir <path>   Checkout path of the website target repo.
   --asset <path>     Signed Auth Server zip. Matching .sha256 and .version files must sit next to it.
   --help, -h         Show this help.
 EOF

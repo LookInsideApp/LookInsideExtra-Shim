@@ -5,7 +5,7 @@
 This repo has two independent responsibilities:
 
 1. Mirror the remaining upstream xcframework(s) declared in `Config/upstream-sources.json` as Swift Package binary targets on the `storage` release.
-2. Re-sign and notarize the LookInside auth server `.app` produced by the `LookInside-Auth` repo, and publish the signed zip on the `storage` release.
+2. Re-sign and notarize the LookInside auth server `.app` produced by the auth helper source repo, and publish the signed zip on the `storage` release.
 
 The authenticator and authenticator-ui xcframeworks are retired. The auth server now ships as a standalone notarized `.app`, signed in this repo.
 
@@ -38,7 +38,7 @@ The authenticator and authenticator-ui xcframeworks are retired. The auth server
 ## Build and Publish Auth Server workflow
 
 - Workflow file: `.github/workflows/sign-auth-server.yml`, named **Build and Publish Auth Server**.
-- Trigger: `workflow_dispatch`. Inputs: `source_ref` (git ref of `LookInsideApp/LookInside-Auth`, default `main`), `output_asset` (default `lookinside-auth-server.app.zip`).
+- Trigger: `workflow_dispatch`. Inputs: `source_ref` (git ref of the auth helper source repo, default `main`), `output_asset` (default `lookinside-auth-server.app.zip`).
 - The authenticator repo contains source only. It has no workflows. All packaging, signing, notarization, and publishing for the auth server live here.
 - Steps:
   1. Check out the shim repo and the authenticator source (private, cloned with `UPSTREAM_MIRROR_TOKEN`).
@@ -54,6 +54,9 @@ The authenticator and authenticator-ui xcframeworks are retired. The auth server
 ## Required CI secrets
 
 - `UPSTREAM_MIRROR_TOKEN`: PAT used to clone upstream repos and download private release assets.
+- `UPSTREAM_SERVER_REPO_URL`: clone URL of the private LookInsideServer source repo (referenced by `Config/upstream-sources.json` via `repositoryEnv`). Kept in a secret so the public repo never reveals the source URL.
+- `AUTH_SOURCE_REPO`: `owner/name` of the private auth helper source repo. Consumed by the Sign Auth Server workflow's checkout step.
+- `WEB_TARGET_REPO`: `owner/name` of the private website repo that receives the signed Auth Server asset. Consumed by the Sign Auth Server workflow's checkout step.
 - `KEYCHAIN_CONTENT_GZIP`: base64(gzip(keychain db)) containing the Developer ID Application certificate and a saved notarytool profile.
 - `KEYCHAIN_SECRET`: unlock password for the restored keychain.
 
