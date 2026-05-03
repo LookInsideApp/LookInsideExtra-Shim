@@ -38,6 +38,16 @@ Currently mirrored upstreams (see [`Config/upstream-sources.json`](Config/upstre
 | `LookInsideServerStatic`  | static  |
 | `LookInsideServerDynamic` | dynamic |
 
+### Static integration: `-ObjC` is required
+
+`LookInsideServerStatic` boots itself from `+[LKInjectedBootstrapTrampoline load]`. With static linking, `ld` strips object files whose symbols are never referenced by the app — `+load` would never run, and `LookinServerStart()` would never be called. Add `-ObjC` to the host app's **Other Linker Flags** so the Obj-C runtime category/class loader pulls every `.o` from the archive:
+
+```
+OTHER_LDFLAGS = $(inherited) -ObjC
+```
+
+The dynamic product (`LookInsideServerDynamic`) does not need this — dyld runs all module initializers when it loads the image.
+
 ---
 
 ## Release layout
