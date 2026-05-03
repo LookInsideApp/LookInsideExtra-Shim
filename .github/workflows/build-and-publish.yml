@@ -21,7 +21,10 @@ permissions:
 
 jobs:
   build:
-    runs-on: macos-latest
+    # Pin the runner image so toolchain availability stays predictable.
+    # macos-26-arm64 ships Xcode 26.x preinstalled, matching the local
+    # build environment.
+    runs-on: macos-26-arm64
     timeout-minutes: 90
     env:
       GH_TOKEN: ${{ secrets.UPSTREAM_MIRROR_TOKEN }}
@@ -38,13 +41,10 @@ jobs:
           fetch-depth: 0
 
       - name: Select Xcode
-        # FrameworkToolbox 0.5.x declares swift-tools-version 6.2, so the
-        # macos-15 runner's default /Applications/Xcode.app (currently
-        # Xcode 16.4 / Swift 6.1.2) rejects the package graph. Pin to the
-        # newest stable Xcode 26.x preinstalled on macos-latest.
-        # Bump this when actions/runner-images promotes a newer Xcode 26.
+        # Xcode 26.4.1 matches the locally verified xcframework build and
+        # is preinstalled on the macos-26 runner image.
         run: |
-          sudo xcode-select -s /Applications/Xcode_26.3.app/Contents/Developer
+          sudo xcode-select -s /Applications/Xcode_26.4.1.app/Contents/Developer
           xcodebuild -version
           swift --version
 
