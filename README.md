@@ -43,7 +43,7 @@ Currently mirrored upstreams (see [`Config/upstream-sources.json`](Config/upstre
 
 - Swift Package consumers pin semver tags (`X.Y.Z`) on this repo.
 - Each successful **Build and Publish** run reads the latest `X.Y.Z`, increments patch by 1, builds the binary assets, renders `Package.swift` with URLs for that new tag, commits the manifest, pushes `main` plus the tag, then uploads the assets to that tag's GitHub Release.
-- Asset names stay stable across releases (currently `LookInsideServerDynamic.xcframework.zip`); SwiftPM pins exact bytes via the checksum in `Package.swift`.
+- Asset names stay stable across releases (currently `LookInsideServer.xcframework.zip`); SwiftPM pins exact bytes via the checksum in `Package.swift`.
 
 ---
 

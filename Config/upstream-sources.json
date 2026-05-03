@@ -4,9 +4,9 @@
     "repositoryEnv": "UPSTREAM_SERVER_REPO_URL",
     "moduleName": "LookInsideServer",
     "libraryName": "LookInsideServer",
-    "buildCommand": "make package-dynamic",
-    "artifactPath": "build/LookInsideServerDynamic.xcframework.zip",
-    "assetName": "LookInsideServerDynamic.xcframework.zip",
+    "buildCommand": "make package",
+    "artifactPath": "build/LookInsideServer.xcframework.zip",
+    "assetName": "LookInsideServer.xcframework.zip",
     "releaseTagPrefix": "lookinside-server",
     "swiftPackageDependencies": []
   }
