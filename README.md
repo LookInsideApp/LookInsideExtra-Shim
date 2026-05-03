@@ -81,7 +81,7 @@ CI in this repo does not run `swift build` / `swift test` during release creatio
 ## Local development
 
 ```bash
-Scripts/build_and_publish.py --release-tag 0.1.5  # exercise the mirror flow locally
+Scripts/build_and_publish.py --release-tag 0.2.0  # exercise the mirror flow locally
 Scripts/sign-and-notarize-app.sh      # sign a .app bundle locally
 ```
 
