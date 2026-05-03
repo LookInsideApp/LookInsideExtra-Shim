@@ -38,7 +38,18 @@ jobs:
           fetch-depth: 0
 
       - name: Select Xcode
-        run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+        run: |
+          # FrameworkToolbox uses swift-tools-version 6.2, so pick the highest
+          # versioned Xcode installed on the runner (the default symlink may
+          # point at an older Xcode whose toolchain is too old).
+          candidate="$(ls -d /Applications/Xcode_*.app 2>/dev/null | sort -V | tail -1)"
+          if [ -z "$candidate" ]; then
+            candidate="/Applications/Xcode.app"
+          fi
+          echo "Selecting Xcode at $candidate"
+          sudo xcode-select -s "$candidate/Contents/Developer"
+          xcodebuild -version
+          swift --version
 
       - name: Install xcbeautify
         run: brew install xcbeautify
