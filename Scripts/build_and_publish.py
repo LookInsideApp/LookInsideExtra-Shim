@@ -175,7 +175,7 @@ def main():
             url = release_download_url(mirror_repo, args.release_tag, name)
             mirrors[source["id"]] = {"assetName": name, "checksum": sha, "downloadURL": url}
 
-        render_package({"mirrors": mirrors})
+        render_package({"releaseTag": args.release_tag, "mirrors": mirrors})
 
 
 if __name__ == "__main__":

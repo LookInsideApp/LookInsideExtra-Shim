@@ -11,8 +11,10 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SOURCES_PATH = REPO_ROOT / "Config" / "upstream-sources.json"
 PACKAGE_PATH = REPO_ROOT / "Package.swift"
+PODSPEC_PATH = REPO_ROOT / "LookInsideServer.podspec"
 LEGACY_SHIMS_ROOT = REPO_ROOT / "Sources"
 TESTS_ROOT = REPO_ROOT / "Tests"
+RELEASE_REPO_URL = "https://github.com/LookInsideApp/LookInside-Release.git"
 
 
 def load_json(path: Path) -> object:
@@ -36,6 +38,50 @@ def render_package_dependency(spec: dict) -> str:
     if "version" in spec:
         return f'        .package(url: {url}, from: {quoted(spec["version"])})'
     raise SystemExit(f"swiftPackageDependency missing branch/version: {spec}")
+
+
+def infer_release_tag(download_url: str | None) -> str | None:
+    if not download_url:
+        return None
+    marker = "/releases/download/"
+    if marker not in download_url:
+        return None
+    tail = download_url.split(marker, 1)[1]
+    return tail.split("/", 1)[0]
+
+
+def ruby_string(value: str) -> str:
+    return json.dumps(value)
+
+
+def render_lookinside_server_podspec(
+    *,
+    version: str,
+    download_url: str,
+    checksum: str,
+) -> str:
+    return f"""Pod::Spec.new do |s|
+  s.name = "LookInsideServer"
+  s.version = {ruby_string(version)}
+  s.summary = "LookInside runtime server for debuggable iOS and macOS apps."
+  s.homepage = "https://github.com/LookInsideApp/LookInside-Release"
+  s.license = {{ :type => "MIT" }}
+  s.authors = {{ "LookInside" => "support@lookinside-app.com" }}
+  s.source = {{ :git => {ruby_string(RELEASE_REPO_URL)}, :tag => s.version.to_s }}
+  s.ios.deployment_target = "13.0"
+  s.osx.deployment_target = "14.0"
+  s.swift_versions = ["5.9"]
+  s.vendored_frameworks = "LookInsideServer.xcframework"
+  s.prepare_command = <<-CMD
+set -eu
+curl -L -o LookInsideServer.xcframework.zip {ruby_string(download_url)}
+echo "{checksum}  LookInsideServer.xcframework.zip" | shasum -a 256 -c -
+rm -rf LookInsideServer.xcframework
+ditto -x -k LookInsideServer.xcframework.zip .
+rm LookInsideServer.xcframework.zip
+  CMD
+end
+"""
 
 
 def parse_args() -> argparse.Namespace:
@@ -114,11 +160,13 @@ def main() -> None:
     sources = load_json(SOURCES_PATH)
     state = load_json(Path(args.state_path))
     mirrors = state.get("mirrors", {})
+    release_tag = state.get("releaseTag")
     local_overrides = parse_local_overrides(args.local_binary_override)
 
     products: list[str] = []
     targets: list[str] = []
     active_modules: list[str] = []
+    podspec_text: str | None = None
     package_dependencies: list[str] = []
     seen_package_urls: set[str] = set()
     for source in sources:
@@ -133,6 +181,18 @@ def main() -> None:
         library_name = source["libraryName"]
         module_name = source["moduleName"]
         active_modules.append(module_name)
+
+        if module_name == "LookInsideServer" and download_url:
+            podspec_version = release_tag or infer_release_tag(download_url)
+            if not podspec_version:
+                raise SystemExit(
+                    "LookInsideServer podspec rendering needs a release tag."
+                )
+            podspec_text = render_lookinside_server_podspec(
+                version=podspec_version,
+                download_url=download_url,
+                checksum=checksum,
+            )
 
         spm_deps = source.get("swiftPackageDependencies", [])
         if spm_deps:
@@ -195,8 +255,8 @@ import PackageDescription
 let package = Package(
     name: "LookInside-Release",
     platforms: [
-        .iOS("15.0"),
-        .macOS("15.0"),
+        .iOS("13.0"),
+        .macOS("14.0"),
     ],
     products: [
 {products_body}
@@ -208,6 +268,8 @@ let package = Package(
 """
 
     PACKAGE_PATH.write_text(package_text)
+    if podspec_text:
+        PODSPEC_PATH.write_text(podspec_text)
     remove_legacy_shims()
     if active_modules:
         write_test_sources(active_modules)

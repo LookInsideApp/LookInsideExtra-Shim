@@ -34,6 +34,8 @@ The authenticator and authenticator-ui xcframeworks are retired. The auth server
   4. Regenerate `Package.swift` with the fresh checksums and commit the change to `main`.
   5. Publish the next patch semver tag/release for Swift Package consumers after the `main` update is available.
 - The workflow must **not** run `swift build`, `swift test`, or any other verification against this repo's package in CI.
+- The workflow runs `pod spec lint LookInsideServer.podspec --allow-warnings` after the versioned release asset is available.
+- The workflow runs `Scripts/test_cocoapods_integration.sh <tag>` after linting to build a temporary iOS app from the GitHub tag Podfile path.
 
 ## Build and Publish Auth Server workflow
 
@@ -69,7 +71,8 @@ The authenticator and authenticator-ui xcframeworks are retired. The auth server
 ## Scripts
 
 - `Scripts/build_and_publish.py` — xcframework mirror entry point used by **Build and Publish**. Keep it minimal: clone → `make package | xcbeautify` → upload → render `Package.swift`.
-- `Scripts/render_package_manifest.py` — renders `Package.swift` and the shim `Sources/*PackageShim/Exports.swift` files from in-memory mirror state passed via `--state-path`.
+- `Scripts/render_package_manifest.py` — renders `Package.swift`, `LookInsideServer.podspec`, and import smoke tests from in-memory mirror state passed via `--state-path`.
+- `Scripts/test_cocoapods_integration.sh` — creates a temporary iOS app under `/tmp`, installs `LookInsideServer` via CocoaPods `:git` / `:tag`, and builds the workspace.
 - `Scripts/setup-ci-keychain.sh` — restores the signing keychain from CI secrets, exports keychain/signing identity/notarytool profile outputs.
 - `Scripts/sign-and-notarize-app.sh` — signs a `.app` bundle, notarizes via notarytool, staples, and writes a final zip.
 - Do not reintroduce a persistent `Config/mirror-state.json`. State is in-memory per run.

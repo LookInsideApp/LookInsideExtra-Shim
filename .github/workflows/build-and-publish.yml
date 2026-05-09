@@ -51,6 +51,9 @@ jobs:
       - name: Install xcbeautify
         run: brew install xcbeautify
 
+      - name: Install CocoaPods
+        run: gem install cocoapods --no-document
+
       - name: Determine next release version
         id: version
         env:
@@ -103,14 +106,14 @@ jobs:
       - name: Commit updated manifest
         id: commit
         run: |
-          if git diff --quiet -- Package.swift Tests; then
+          if git diff --quiet -- Package.swift Tests LookInsideServer.podspec; then
             echo "No manifest changes to commit."
             echo "created_commit=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add Package.swift Tests
+          git add Package.swift Tests LookInsideServer.podspec
           git commit -m "Build and publish ${{ steps.version.outputs.next_tag }}"
           git tag "${{ steps.version.outputs.next_tag }}"
           git push origin HEAD:main "${{ steps.version.outputs.next_tag }}"
@@ -122,5 +125,13 @@ jobs:
           gh release create "${{ steps.version.outputs.next_tag }}" \
             --verify-tag \
             --title "${{ steps.version.outputs.next_tag }}" \
-            --notes "Swift Package release ${{ steps.version.outputs.next_tag }}." \
+            --notes "SwiftPM and CocoaPods release ${{ steps.version.outputs.next_tag }}." \
             build/release-assets/*.zip
+
+      - name: Lint CocoaPods podspec
+        if: steps.commit.outputs.created_commit == 'true'
+        run: pod spec lint LookInsideServer.podspec --allow-warnings
+
+      - name: Build CocoaPods integration fixture
+        if: steps.commit.outputs.created_commit == 'true'
+        run: Scripts/test_cocoapods_integration.sh "${{ steps.version.outputs.next_tag }}"
