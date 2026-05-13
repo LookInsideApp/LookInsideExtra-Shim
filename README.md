@@ -45,7 +45,7 @@ end
 
 The CocoaPods snippet scopes `LookInsideServer` to Debug builds through `:configurations => ["Debug"]`.
 
-## Manual XCFramework
+## XCFramework
 
 Download and unzip `LookInsideServer.xcframework.zip` from the latest release, then drag `LookInsideServer.xcframework` into your Xcode project. In your debug target's **General** tab → **Frameworks, Libraries, and Embedded Content**, set it to **Embed & Sign**.
 
