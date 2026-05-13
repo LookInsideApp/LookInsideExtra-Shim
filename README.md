@@ -24,6 +24,14 @@ targets: [
 ]
 ```
 
+For Release builds, open your app target's Build Settings and set **Excluded Source File Names** to:
+
+```text
+LookInsideServer*
+```
+
+Keep direct `LookInsideServer` API calls inside Debug-only code paths.
+
 ## CocoaPods
 
 ```ruby
@@ -33,6 +41,18 @@ target "YourApp" do
       :tag => "X.Y.Z",
       :configurations => ["Debug"]
 end
+```
+
+The CocoaPods snippet scopes `LookInsideServer` to Debug builds through `:configurations => ["Debug"]`.
+
+## Manual XCFramework
+
+Download and unzip `LookInsideServer.xcframework.zip` from the latest release, then drag `LookInsideServer.xcframework` into your Xcode project. In your debug target's **General** tab → **Frameworks, Libraries, and Embedded Content**, set it to **Embed & Sign**.
+
+For Release builds, open your app target's Build Settings and set **Excluded Source File Names** to:
+
+```text
+LookInsideServer*
 ```
 
 ## Product
